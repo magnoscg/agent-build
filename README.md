@@ -167,8 +167,9 @@ export function AgentBuildButton() {
 }
 ```
 
-Keep `@magnoscg/agent-build/auto` out of server components and layouts: it
-would show the button before React hydrates it.
+Don't import `@magnoscg/agent-build/auto` at the top of a client component:
+it runs as soon as the bundle loads and would show the button before React
+hydrates it.
 
 ### Vue and Nuxt
 
