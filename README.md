@@ -17,7 +17,7 @@ Content Security Policy and Trusted Types.
 
 ```html
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.0/dist/agent-build.css" integrity="sha384-crlu5HFBkzAGiZJnrNzC+LIuus1TWtFBxHf2ZZPAdlocNAzB9iqPdp2Xao/q0q36" crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.0/dist/agent-build.js" integrity="sha384-CfvJMvLD9SgwFhapp0fxm1FRiofJ6NQ78X+RJvrM8+2j9PsmOBBHm/p9wPBsxeJr" crossorigin="anonymous" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.0/dist/agent-build.js" integrity="sha384-SqxnmGfwK6lEQPKFALrqLaPjVbfs7jO9f7j6+7ZHt39RjbB8WTk7GKhJO/2rxw12" crossorigin="anonymous" defer></script>
 <button data-agent-build hidden></button>
 ```
 

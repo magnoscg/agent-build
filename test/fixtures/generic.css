@@ -9,3 +9,5 @@ body { margin: 0; font: 16px/1.5 system-ui, sans-serif; }
 .card { display: block; padding: 16px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); color: inherit; }
 .card-title { font-weight: 600; }
 table, details, dl, blockquote, form, custom-thing { display: block; margin: 24px 0; }
+.spacer { height: 2400px; }
+.late { display: block; }

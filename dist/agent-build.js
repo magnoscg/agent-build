@@ -150,9 +150,10 @@
   });
   /* Twenty agents, or fourteen on narrow screens. At most 160 layers get
      built, about fifteen seconds: on longer pages the rest is shown from
-     the start, so nothing waits hidden for minutes. */
+     the start, so nothing waits hidden for minutes. Images still loading
+     get up to a second before anything is measured. */
   const AGENTS = Object.freeze({ wide: 20, narrow: 14, breakpoint: 720 });
-  const LIMITS = Object.freeze({ pace: [0.25, 4], count: [1, 40], layers: 160 });
+  const LIMITS = Object.freeze({ pace: [0.25, 4], count: [1, 40], layers: 160, settle: 1000 });
 
   const OPTION_KEYS = ['frames', 'atoms', 'pop', 'hub', 'pace', 'count', 'accent'];
   /* A link that wraps blocks, the usual card, is a frame: its parts get
@@ -609,11 +610,8 @@
           element.setAttribute('aria-disabled', 'true');
         }
         root.classList.add('agent-building');
-        for (const image of document.querySelectorAll('img[loading="lazy"]')) {
-          image.loading = 'eager';
-        }
         window.scrollTo(0, 0);
-        await (document.fonts && document.fonts.ready);
+        await settle();
         if (!run.running) {
           return;
         }
@@ -654,6 +652,31 @@
         }
       }
       finish(run, false);
+    }
+
+    /* Waits for the web fonts and for every image still loading, lazy ones
+       included, so the boxes are measured on the final layout: an image
+       without dimensions is 0×0 until it loads, and would shift everything
+       below it halfway through the run. The wait is capped. */
+    function settle() {
+      const pending = [];
+      for (const image of document.querySelectorAll('img')) {
+        if (image.loading === 'lazy') {
+          image.loading = 'eager';
+        }
+        if (!image.complete) {
+          pending.push(image.decode().catch(() => {}));
+        }
+      }
+      if (document.fonts) {
+        pending.push(document.fonts.ready);
+      }
+      return Promise.race([
+        Promise.all(pending),
+        new Promise((resolve) => {
+          setTimeout(resolve, LIMITS.settle);
+        }),
+      ]);
     }
 
     function collectLayers(config) {
