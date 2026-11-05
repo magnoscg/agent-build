@@ -44,6 +44,14 @@ test('the script never runs without the stylesheet', () => {
   assert.match(page, /getPropertyValue\('--agent-build-css'\)/);
 });
 
+test('during a run the page scrolls only where the script sends it', () => {
+  const rule = styles.match(/html\[data-agent-build-run\] \{([^}]*)\}/)?.[1] ?? '';
+  for (const declaration of ['scroll-behavior: auto', 'scroll-snap-type: none', 'overflow-anchor: none']) {
+    assert.ok(rule.includes(`${declaration} !important;`), declaration);
+  }
+  assert.match(styles, /html\[data-agent-build-run\] > body \{ overflow-anchor: none !important; \}/);
+});
+
 // MARK: - CSP
 
 test('the source builds nodes without HTML strings, eval or style attributes', async () => {

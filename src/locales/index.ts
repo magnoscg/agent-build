@@ -25,8 +25,9 @@ const PLACEHOLDERS = { layers: ['done', 'total'], built: ['seconds'] } as const;
 
 const freeze = (texts: Locale): Locale => Object.freeze({ ...texts, agents: Object.freeze({ ...texts.agents }) });
 
-const registry = new Map<string, Locale>(Object.entries({ de, en, es, fr, it, nl, pt, sv })
+const SHIPPED = new Map<string, Locale>(Object.entries({ de, en, es, fr, it, nl, pt, sv })
   .map(([tag, texts]) => [tag, freeze(texts)]));
+const registry = new Map(SHIPPED);
 
 function canonical(tag: unknown): string | null {
   try {
@@ -56,7 +57,7 @@ export function resolveLocale(tag: string | null | undefined): string {
    announcements and appear in the summary. */
 export function problemsWith(texts: unknown): string[] {
   if (!texts || typeof texts !== 'object') {
-    return ['are not an object'];
+    return ['not an object'];
   }
   const given = texts as Record<string, unknown>;
   const missing: string[] = TEXTS.filter((key) => typeof given[key] !== 'string' || given[key].trim() === '');
@@ -65,12 +66,12 @@ export function problemsWith(texts: unknown): string[] {
     missing.push('agents.other with {count}');
   }
   if (missing.length > 0) {
-    return [`lack ${missing.join(', ')}`];
+    return [`missing ${missing.join(', ')}`];
   }
-  const { kicker, label, started, finished, built, dir } = given as unknown as Locale;
-  const problems = [label, started, finished]
-    .filter((text) => !text.startsWith(kicker))
-    .map((text) => `"${text}" does not open with "${kicker}"`);
+  const { kicker, built, dir } = given as unknown as Locale;
+  const problems = (['label', 'started', 'finished'] as const)
+    .filter((key) => !(given[key] as string).startsWith(kicker))
+    .map((key) => `${key} does not open with "${kicker}"`);
   if (!built.toLocaleLowerCase().includes(kicker.toLocaleLowerCase())) {
     problems.push(`built does not say "${kicker}"`);
   }
@@ -86,15 +87,21 @@ export function problemsWith(texts: unknown): string[] {
 }
 
 /* Registers or replaces a language. Throws when the tag is not a language
-   tag or the texts would not declare the simulation. */
+   tag or the texts would not declare the simulation. A shipped language, or
+   a regional variant of one, keeps the word it ships with. */
 export function addLocale(tag: string, texts: Locale): void {
   const key = canonical(tag);
   if (!key) {
     throw new TypeError(`agent-build: "${tag}" is not a language tag`);
   }
   const problems = problemsWith(texts);
+  const primary = key.split('-')[0];
+  const shipped = SHIPPED.get(primary);
+  if (shipped && texts?.kicker !== shipped.kicker) {
+    problems.push(`kicker is not "${shipped.kicker}", the word shipped for ${primary}`);
+  }
   if (problems.length > 0) {
-    throw new TypeError(`agent-build: the "${tag}" texts ${problems.join('; ')}`);
+    throw new TypeError(`agent-build: the "${tag}" texts are refused: ${problems.join('; ')}`);
   }
   registry.set(key, freeze(texts));
 }

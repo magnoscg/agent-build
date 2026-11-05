@@ -160,20 +160,41 @@ test('addLocale accepts a right-to-left language and its plural forms', () => {
 test('addLocale refuses a language that would not disclose the simulation', () => {
   const without = ({ finished, ...rest }) => rest;
   const cases = [
-    [{ ...catalan, label: "Agents d'IA construint la pàgina" }, /does not open with "Simulació"/],
-    [{ ...catalan, started: 'En curs.' }, /does not open with "Simulació"/],
+    [{ ...catalan, label: "Agents d'IA construint la pàgina" }, /label does not open with "Simulació"/],
+    [{ ...catalan, started: 'En curs.' }, /started does not open with "Simulació"/],
     [{ ...catalan, built: 'Construïda en {seconds} s' }, /built does not say "Simulació"/],
-    [without(catalan), /lack finished/],
-    [{ ...catalan, kicker: ' ' }, /lack kicker/],
-    [{ ...catalan, agents: { one: '{count} agent' } }, /lack agents\.other with \{count\}/],
+    [without(catalan), /missing finished/],
+    [{ ...catalan, kicker: ' ' }, /missing kicker/],
+    [{ ...catalan, agents: { one: '{count} agent' } }, /missing agents\.other with \{count\}/],
     [{ ...catalan, layers: '{done} capes' }, /layers lacks \{total\}/],
     [{ ...catalan, dir: 'up' }, /dir is neither/],
-    [null, /are not an object/],
+    [null, /not an object/],
   ];
   for (const [texts, message] of cases) {
     assert.throws(() => addLocale('xx', texts), { name: 'TypeError', message }, String(message));
   }
   assert.equal(resolveLocale('xx'), 'en');
+});
+
+test('a shipped language keeps its word, in every regional variant', () => {
+  const spanish = phrasesFor('es');
+  const demo = {
+    ...catalan,
+    kicker: 'Demo',
+    label: 'Demo: agentes de IA',
+    started: 'Demo en curso.',
+    built: 'Montada en {seconds} s · demo',
+    finished: 'Demo terminada.',
+  };
+  for (const tag of ['es', 'es-ES', 'ES_mx']) {
+    assert.throws(() => addLocale(tag, demo), { name: 'TypeError', message: /kicker is not "Simulación", the word shipped for es/ }, tag);
+  }
+  assert.equal(phrasesFor('es-ES').kicker, spanish.kicker);
+
+  addLocale('es-ES', { ...catalan, kicker: 'Simulación', label: 'Simulación: agentes de IA montando la página',
+    started: 'Simulación en curso.', built: 'Montada en {seconds} s · era una simulación', finished: 'Simulación terminada.' });
+  assert.equal(resolveLocale('es-ES'), 'es-es');
+  assert.equal(resolveLocale('es-MX'), 'es');
 });
 
 test('addLocale refuses what is not a language tag', () => {

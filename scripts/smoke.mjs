@@ -338,6 +338,21 @@ test('started from code it reports no trigger, then gives focus and scroll back'
   await assertClean(page, problems);
 });
 
+test('focus goes back to where it was, not to a trigger passed in', async (t) => {
+  const { page, problems } = await open(t, '/');
+  await page.evaluate(() => {
+    document.querySelector('[data-demo-run]').focus({ preventScroll: true });
+    window.AgentBuild.start({ trigger: document.querySelector('[data-agent-build]') });
+  });
+  await page.locator('.agent-build-hud').waitFor();
+  await page.keyboard.press('Escape');
+  await waitUntilGone(page);
+
+  assert.equal(await page.evaluate(() => document.activeElement.hasAttribute('data-demo-run')), true);
+  assert.equal((await events(page))[0].detail.trigger, true);
+  await assertClean(page, problems);
+});
+
 test('a scroll of the visitor\'s own stops the follow, and the page stays there', async (t) => {
   const { page, problems } = await open(t, '/');
   await page.locator('button[data-agent-build]').click();
