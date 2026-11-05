@@ -1,0 +1,45 @@
+name: New language
+description: Ship agent-build in another language.
+labels: [language]
+body:
+  - type: markdown
+    attributes:
+      value: CONTRIBUTING.md explains each text. The label and both announcements open with the kicker, the word for "Simulation", and the summary contains it.
+  - type: input
+    id: tag
+    attributes:
+      label: Language tag
+      description: The BCP 47 tag a page would carry in its lang attribute.
+      placeholder: ca
+    validations:
+      required: true
+  - type: dropdown
+    id: native
+    attributes:
+      label: Are you a native speaker?
+      options:
+        - 'Yes'
+        - 'No'
+    validations:
+      required: true
+  - type: textarea
+    id: texts
+    attributes:
+      label: The texts
+      render: js
+      value: |
+        {
+          kicker: 'Simulation',
+          label: 'Simulation: AI agents building the page',
+          cta: 'Watch the agents build it',
+          agents: { one: '{count} agent', other: '{count} agents' },
+          layers: '{done}/{total} layers',
+          pause: 'Pause',
+          resume: 'Resume',
+          finish: 'Finish',
+          started: 'Simulation running: a swarm of AI agents is building the page. Press Escape to finish.',
+          built: 'Built in {seconds} s · it was a simulation',
+          finished: 'Simulation finished. The page is complete.',
+        }
+    validations:
+      required: true

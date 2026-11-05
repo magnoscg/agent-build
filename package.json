@@ -60,7 +60,8 @@
     "test:release": "node --test \"test/release/*.test.mjs\"",
     "smoke": "pnpm build && node --test scripts/smoke.mjs",
     "demo": "pnpm build && node scripts/serve.mjs",
-    "sri": "pnpm build && node scripts/sri.mjs"
+    "sri": "pnpm build && node scripts/sri.mjs",
+    "release:prepare": "node scripts/release.mjs prepare"
   },
   "packageManager": "pnpm@11.18.0",
   "devDependencies": {

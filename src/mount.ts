@@ -27,8 +27,8 @@ function write(label: HTMLElement) {
   label.dir = text.dir;
 }
 
-/* Adds or replaces a language. The labels the library gave its triggers
-   follow, so it works before or after they are mounted. */
+/* The labels the library gave its triggers follow the new language, so it
+   can be added before or after they are mounted. */
 export function addLocale(tag: string, texts: Locale): void {
   register(tag, texts);
   if (typeof document !== 'undefined') {
