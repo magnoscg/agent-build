@@ -101,6 +101,9 @@ and tags are `X.Y.Z` without a `v`.
   `pnpm publish --access public`. Then add the trusted publisher. The workflow
   skips a version that is already on npm and carries on with the rest.
 - **GitHub Pages.** In the repository settings, set the Pages source to
-  GitHub Actions.
+  GitHub Actions. That creates the `github-pages` environment, which at first
+  deploys only from the default branch: under Settings → Environments →
+  `github-pages`, add a tag rule such as `*.*.*`, or the deploy of a release
+  tag is refused.
 - **Private vulnerability reporting.** Turn it on in the repository's
   security settings, since [SECURITY.md](SECURITY.md) points to it.
