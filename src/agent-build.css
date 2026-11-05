@@ -19,10 +19,15 @@
      before it shows the button. */
   :root { --agent-build-css: 1; }
 
+  /* During a run the page scrolls only where the script sends it: at once,
+     unsnapped, and never moved by scroll anchoring, so the follow can tell
+     the visitor's own scrolls apart. */
   html[data-agent-build-run] {
     scroll-behavior: auto !important;
     scroll-snap-type: none !important;
+    overflow-anchor: none !important;
   }
+  html[data-agent-build-run] > body { overflow-anchor: none !important; }
 
   /* While it builds, the page is hidden with `visibility`, which keeps the
      layout still. Revealed elements come back. Inside a revealed block, no

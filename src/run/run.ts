@@ -122,8 +122,8 @@ async function begin(config: Config, text: Phrases, trigger: Element | null) {
   for (const element of triggers()) {
     element.setAttribute('aria-disabled', 'true');
   }
-  /* Chrome skips the style update for scrollTo(0, 0), so the run's
-     scroll-behavior is applied first and the jump is instant. */
+  /* Reading the style applies the run attribute's scroll-behavior before
+     the jump; otherwise a page's smooth scrolling can still apply to it. */
   void getComputedStyle(root).scrollBehavior;
   window.scrollTo(0, 0);
   try {

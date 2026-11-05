@@ -173,7 +173,9 @@ its own `lang`.
 
 `addLocale()` adds a language, or replaces one, at any time: the labels the
 library gave its triggers follow. It throws unless the label and both
-announcements open with the word for "Simulation" and the summary says it. `agents` holds a form per plural
+announcements open with the language's `kicker`, its word for "Simulation",
+and the summary says it. A shipped language, or a regional variant of one
+such as `es-ES`, has to keep the word in the table. `agents` holds a form per plural
 category of the language, as `Intl.PluralRules` names them, and always
 `other`. Add `dir: 'rtl'` for a right-to-left language.
 
