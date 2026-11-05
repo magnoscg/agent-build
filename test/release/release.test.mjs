@@ -6,6 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { DOCUMENTS, integrity, SNIPPET_FILES, snippetPattern } from '../../scripts/sri.mjs';
+import { notesFor } from '../../scripts/release.mjs';
 
 const read = (path) => readFile(new URL(`../../${path}`, import.meta.url), 'utf8');
 const pkg = JSON.parse(await read('package.json'));
@@ -32,4 +33,8 @@ test('every integrity hash matches the built file', async () => {
       }
     }
   }
+});
+
+test('the changelog has the notes of this version', async () => {
+  assert.ok(notesFor(await read('CHANGELOG.md'), pkg.version), `CHANGELOG.md has "## ${pkg.version} - <date>"`);
 });

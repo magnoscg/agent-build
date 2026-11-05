@@ -1,0 +1,39 @@
+name: Bug report
+description: agent-build does something wrong on a page.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting it. A security problem goes in a private report instead, as SECURITY.md explains.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: 1.0.0
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and system
+      placeholder: Chrome 156 on macOS 26
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How to see it
+      description: A page, or a small HTML file, and the steps that show the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: behaviour
+    attributes:
+      label: What happened, and what you expected
+    validations:
+      required: true
+  - type: textarea
+    id: console
+    attributes:
+      label: Console output
+      render: text

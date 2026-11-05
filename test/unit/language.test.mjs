@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
 import { addLocale, languages, phrasesFor, problemsWith, resolveLocale } from '../../src/locales/index.ts';
+import { section } from '../markdown.mjs';
 
 /* The disclosure each language has to open with. Changing one of these is a
    change in what the library claims to be. */
@@ -115,9 +116,8 @@ test('every shipped language is left-to-right', () => {
 // MARK: - Documentation
 
 test('the README table lists every shipped language with its disclosure', async () => {
-  const readme = await read('README.md');
-  const section = readme.slice(readme.indexOf('### Languages'), readme.indexOf('## How it picks the blocks'));
-  const rows = [...section.matchAll(/^\| `([a-z-]+)` \| [^|]+ \| ([^|]+?) \|$/gm)];
+  const table = section(await read('README.md'), '### Languages');
+  const rows = [...table.matchAll(/^\| `([a-z-]+)` \| [^|]+ \| ([^|]+?) \|$/gm)];
   assert.deepEqual(rows.map(([, tag]) => tag).sort(), shipped);
   for (const [, tag, word] of rows) {
     assert.equal(word, DISCLOSURES[tag], tag);
