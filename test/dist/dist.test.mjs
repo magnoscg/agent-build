@@ -9,7 +9,7 @@ import { promisify } from 'node:util';
 const root = new URL('../../', import.meta.url);
 const read = (path) => readFile(new URL(path, root), 'utf8');
 const pkg = JSON.parse(await read('package.json'));
-const BUNDLES = ['dist/agent-build.js', 'dist/agent-build.min.js', 'dist/agent-build.mjs'];
+const BUNDLES = ['dist/agent-build.js', 'dist/agent-build.min.js', 'dist/agent-build.mjs', 'dist/auto.mjs'];
 const STYLES = ['dist/agent-build.css', 'dist/agent-build.min.css'];
 
 test('every built file names its version and licence', async () => {
@@ -48,4 +48,11 @@ test('strict TypeScript consumers type-check against the declarations', async ()
     const config = fileURLToPath(new URL(`test/dist/consumer/tsconfig.${project}.json`, root));
     await promisify(execFile)(tsc, ['-p', config]);
   }
+});
+
+test('the auto entry imports the main module instead of copying it, and is safe to import on a server', async () => {
+  const auto = await read('dist/auto.mjs');
+  assert.match(auto, /from "\.\/agent-build\.mjs"/);
+  assert.doesNotMatch(auto, /function selectLayers/);
+  await import('@magnoscg/agent-build/auto');
 });

@@ -479,3 +479,83 @@ test('a run never builds for much longer than twenty seconds, whatever the optio
   await waitUntilGone(page);
   await assertClean(page, problems);
 });
+
+const hudText = (page) => page.locator('.agent-build-hud').innerText();
+
+test('an element named AgentBuild does not stop the library', async (t) => {
+  const { page, problems } = await open(t, '/test/fixtures/frameworks.html');
+
+  assert.equal(await page.evaluate(() => typeof window.AgentBuild.start), 'function');
+  await page.locator('#static').waitFor({ state: 'visible' });
+  assert.match(await page.locator('#static').textContent(), /^Watch the agents build it$/);
+  await assertClean(page, problems);
+});
+
+test('a framework handler that starts the run with its own options wins the click', async (t) => {
+  const { page, problems } = await open(t, '/test/fixtures/frameworks.html');
+  await page.locator('#framework').click();
+
+  await page.locator('.agent-build-hud').waitFor();
+  assert.match(await hudText(page), /^Simulation · 3 agents/);
+  assert.equal((await events(page)).filter((event) => event.type === 'agentbuild:start').length, 1);
+  await page.evaluate(() => window.AgentBuild.stop());
+  await waitUntilGone(page);
+  await assertClean(page, problems);
+});
+
+test('buttons rendered later appear once mounted', async (t) => {
+  const { page, problems } = await open(t, '/test/fixtures/frameworks.html');
+  await page.locator('#element button').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('#late').isVisible(), false);
+
+  await page.evaluate(() => window.AgentBuild.mount());
+  await page.evaluate(() => window.AgentBuild.mount());
+  await page.locator('#late').waitFor({ state: 'visible' });
+  assert.match(await page.locator('#late').textContent(), /^Watch the agents build it$/);
+  await page.locator('#late').click();
+  await page.locator('.agent-build-hud').waitFor();
+  assert.match(await hudText(page), /^Simulation · 20 agents/);
+  await page.evaluate(() => window.AgentBuild.stop());
+  await waitUntilGone(page);
+  await assertClean(page, problems);
+});
+
+test('the custom element renders its own trigger and passes on its options', async (t) => {
+  const { page, problems } = await open(t, '/test/fixtures/frameworks.html');
+  const button = page.locator('#element button');
+  await button.waitFor({ state: 'visible' });
+
+  assert.equal(await button.textContent(), 'Build with five');
+  assert.equal(await button.getAttribute('type'), 'button');
+  await button.click();
+  await page.locator('.agent-build-hud').waitFor();
+  assert.match(await hudText(page), /^Simulation · 5 agents/);
+  await page.evaluate(() => window.AgentBuild.stop());
+  await waitUntilGone(page);
+  await assertClean(page, problems);
+});
+
+test('without its stylesheet the button never shows and start() refuses', async (t) => {
+  const { page, problems } = await open(t, '/test/fixtures/no-css.html');
+  await page.waitForLoadState('load');
+  await page.waitForTimeout(100);
+
+  assert.equal(await page.locator('[data-agent-build]').isVisible(), false);
+  assert.equal(await page.evaluate(() => window.AgentBuild.start()), false);
+  assert.deepEqual(await events(page), []);
+  assert.ok(problems.length > 0 && problems.every((problem) => problem.includes('agent-build.css is not loaded')), problems.join('\n'));
+  assert.deepEqual(await page.evaluate(() => window.__violations), []);
+});
+
+test('ES modules in the browser share one run with the auto entry', async (t) => {
+  const { page, problems } = await open(t, '/test/fixtures/esm.html');
+  await page.waitForFunction(() => window.esm);
+  await page.locator('button[data-agent-build]').waitFor({ state: 'visible' });
+
+  assert.equal(await page.evaluate(() => window.esm.start({ pace: 0.25 })), true);
+  assert.equal(await page.evaluate(() => window.AgentBuild.isRunning()), true);
+  assert.equal(await page.evaluate(() => window.AgentBuild.stop()), true);
+  assert.equal(await page.evaluate(() => window.esm.isRunning()), false);
+  await waitUntilGone(page);
+  await assertClean(page, problems);
+});

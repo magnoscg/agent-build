@@ -50,9 +50,9 @@ import '@magnoscg/agent-build/agent-build.css';
 
 The package entry is an ES module with typed named exports and no side
 effects, so it is safe to import during server-side rendering, where
-`start()` returns `false`. To wire the `[data-agent-build]` buttons from a
-bundle, the way the `<script>` tag does, import
-`@magnoscg/agent-build/dist/agent-build.js`.
+`start()` returns `false`. `import '@magnoscg/agent-build/auto'` does what the
+`<script>` tag does: it defines `window.AgentBuild` and `<agent-build-button>`
+and mounts the `[data-agent-build]` buttons. Both entries share one run.
 
 ## Options
 
@@ -96,18 +96,40 @@ and numbers are clamped, so a typo never breaks the page.
 AgentBuild.start(options) // true if a run started
 AgentBuild.stop()         // true if a run was stopped
 AgentBuild.isRunning()    // true while a run is in progress
+AgentBuild.mount(root)    // shows the [data-agent-build] triggers in root (document by default)
 AgentBuild.version        // "1.0.0"
 ```
+
+The ES module exports the same functions, plus `defineElement()`, all typed.
 
 `start()` accepts the options above plus `trigger`, the element whose data
 attributes it reads and where focus returns at the end. Without one it reads
 the first `[data-agent-build]` on the page. It returns `false`, and does
 nothing, when a run is already in progress, the visitor prefers reduced
-motion, the browser lacks Web Animations, or the stylesheet is not loaded.
+motion, the browser lacks Web Animations or cascade layers, or the stylesheet
+is not loaded.
 
-Rendering your button later, from a framework? Call `AgentBuild.start()` from
-its click handler, and keep `data-agent-build` on it so the stylesheet hides
-it under reduced motion.
+A trigger only appears when it can run: it stays `hidden` without the
+stylesheet, without cascade layers or Web Animations, and under reduced
+motion. One click listener on the document serves every trigger, present or
+future, and it runs after your own handlers: a framework's handler that calls
+`start()` with its options, or calls `preventDefault()`, wins the click.
+
+### Frameworks and late buttons
+
+Buttons rendered after the page loaded need showing once: call
+`AgentBuild.mount()` (or `mount()` from the module) after rendering them. It is
+safe to call as often as you like. Or use the custom element, which mounts
+itself whenever it enters the document and works in any framework:
+
+```html
+<agent-build-button label="Watch the agents build it" data-agent-count="12"></agent-build-button>
+```
+
+It renders a `<button data-agent-build>` inside itself and passes on its
+`data-agent-*` options; without a `label` it uses the default one in the
+page's language. The `<script>` tag and the `auto` entry define it; with the
+module alone, call `defineElement()`.
 
 ### Events
 
