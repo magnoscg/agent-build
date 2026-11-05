@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { internals, h, SVG, PAINTED, defaultClassifier, layersOf } from './helpers.mjs';
-
-const {
-  selectLayers, planLayers, columnEdges, tagOf, isTransparent, paintsBox, hasOwnText, isMediaOnly, normalizeOptions,
-} = internals;
+import {
+  columnEdges, hasOwnText, isMediaOnly, isTransparent, paintsBox, planLayers, selectLayers, tagOf,
+} from '../../src/layers.ts';
+import { LIMITS, normalizeOptions } from '../../src/options.ts';
+import { h, SVG, PAINTED, defaultClassifier, layersOf } from '../helpers.mjs';
 
 const describe = (layers) => layers.map((layer) => `${layer.kind}:${layer.element.localName}`);
 
@@ -184,7 +184,7 @@ test('long pages build the first layers and show the rest from the start', () =>
   assert.deepEqual(plan.build.map((layer) => layer.index), [0, 1, 2]);
   assert.deepEqual(plan.shown.map((layer) => layer.index), [3, 4]);
   assert.deepEqual(planLayers(layers, 10).shown, []);
-  assert.equal(internals.LIMITS.layers, 160);
+  assert.equal(LIMITS.layers, 160);
 });
 
 test('column guides follow the edges that repeat', () => {

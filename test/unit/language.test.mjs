@@ -1,8 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { internals } from './helpers.mjs';
-
-const { TEXTS, resolveLanguage } = internals;
+import { LOCALES as TEXTS, resolveLanguage } from '../../src/locales/index.ts';
 
 /* The disclosure each language has to open with. Changing one of these is a
    change in what the library claims to be. */

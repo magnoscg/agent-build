@@ -1,11 +1,13 @@
-# Unit tests only: Linux, no installs, a few seconds a run. The browser smoke
-# test needs Google Chrome and runs locally with `pnpm smoke`. Actions are
-# pinned to full commit SHAs; the comment names the release.
+# Type-checks, tests and builds on the two supported Node lines. The release
+# checks (versions and integrity hashes in the snippets) only run on release
+# branches and tags; the browser smoke test needs Google Chrome and runs
+# locally with `pnpm smoke`. Actions are pinned to full commit SHAs.
 name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, 'release/**']
+    tags: ['*.*.*']
   pull_request:
 
 permissions:
@@ -17,14 +19,26 @@ concurrency:
 
 jobs:
   test:
-    name: Unit tests
+    name: Node ${{ matrix.node }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [24, 26]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24
-      - run: node --test test/*.test.mjs
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test:unit
+      - run: pnpm build
+      - run: pnpm test:dist
+      - if: startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/tags/')
+        run: pnpm test:release

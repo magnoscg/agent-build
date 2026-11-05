@@ -5,6 +5,7 @@
 import test, { after, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
 import { startServer } from './serve.mjs';
 
@@ -138,7 +139,7 @@ test('the button shows up labelled, under a strict CSP with Trusted Types', asyn
   assert.equal(await button.getAttribute('type'), 'button');
   assert.match(await button.textContent(), /^Watch the agents build it$/);
   assert.equal(await page.locator('[data-demo-run]').first().isVisible(), true);
-  await page.screenshot({ path: new URL('demo.png', OUTPUT).pathname, fullPage: false });
+  await page.screenshot({ path: fileURLToPath(new URL('demo.png', OUTPUT)), fullPage: false });
   await assertClean(page, problems);
 
   const enforced = await page.evaluate(() => {
@@ -164,7 +165,7 @@ test('a click runs the simulation, says so, pauses, and Escape restores the page
   await page.waitForFunction(() => /^[1-9]\d*\//.test(document.querySelector('.agent-build-hud-layers')?.textContent || ''),
     null, { timeout: 20000 });
   await page.waitForTimeout(900);
-  await page.screenshot({ path: new URL('running.png', OUTPUT).pathname });
+  await page.screenshot({ path: fileURLToPath(new URL('running.png', OUTPUT)) });
 
   await page.getByRole('button', { name: 'Pause' }).click();
   const paused = await page.locator('.agent-build-hud-layers').textContent();
@@ -280,7 +281,7 @@ test('on a phone it runs fourteen agents', async (t) => {
   await page.locator('.agent-build-agent').first().waitFor();
   assert.equal(await page.locator('.agent-build-agent').count(), 14);
   await page.waitForTimeout(2500);
-  await page.screenshot({ path: new URL('phone.png', OUTPUT).pathname });
+  await page.screenshot({ path: fileURLToPath(new URL('phone.png', OUTPUT)) });
   await page.getByRole('button', { name: 'Finish' }).tap();
   await waitUntilGone(page);
   await assertClean(page, problems);
