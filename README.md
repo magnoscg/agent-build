@@ -143,6 +143,10 @@ Every element under `<body>` is one of these, in document order:
 Up to 160 layers get built, about fifteen seconds. On longer pages the rest is
 shown from the start, so nothing waits hidden for minutes.
 
+Before measuring, it loads lazy images and waits up to a second for any image
+still loading, so an image without `width` and `height` cannot shift the page
+halfway through the run.
+
 ## Accessibility
 
 - It says what it is. The HUD opens with the word for "Simulation", and the
