@@ -159,6 +159,7 @@
   /* A link that wraps blocks, the usual card, is a frame: its parts get
      built one by one inside it. */
   const BLOCKS = 'h1, h2, h3, h4, h5, h6, p, li, figure, picture, img, video, table, blockquote, pre';
+  const MEDIA_SELECTOR = 'img, picture, svg, video, canvas';
   const BUTTONISH = '.button, .btn, [role="button"], [data-agent-build]';
   const SKIP = new Set(['script', 'style', 'template', 'noscript', 'link', 'meta', 'base', 'title', 'slot']);
   const NAMED = new Set([
@@ -324,6 +325,12 @@
       && !isTransparent(style[`border${side}Color`]));
   }
 
+  /* A block that holds media and no text, such as a link around a
+     screenshot, a store badge or a list item with a logo, is an image. */
+  function isMediaOnly(element) {
+    return element.textContent.trim() === '' && element.querySelector(MEDIA_SELECTOR) !== null;
+  }
+
   /* Decides what an element is: 'frame', 'pop', 'type', null when it is
      only a wrapper to look inside, or 'skip' when neither it nor anything in
      it should be looked at. Explicit frames win, then atoms. Then come the
@@ -345,10 +352,11 @@
       }
       if (element.matches(config.atoms) || element.shadowRoot) {
         const pop = element.matches(config.pop);
-        if (name === 'a' && !pop && element.querySelector(BLOCKS)) {
+        const media = isMediaOnly(element);
+        if (name === 'a' && !pop && !media && element.querySelector(BLOCKS)) {
           return 'frame';
         }
-        return pop || element.shadowRoot ? 'pop' : 'type';
+        return pop || media || element.shadowRoot ? 'pop' : 'type';
       }
       if (hasOwnText(element)) {
         if (element.querySelector(candidates)) {
@@ -393,18 +401,18 @@
   }
 
   /* The label on a selection box. */
-  function tagOf(name, kind, buttonLike) {
+  function tagOf(name, kind, buttonLike, mediaOnly) {
     if (kind === 'frame') {
       return 'frame';
     }
-    if (buttonLike) {
+    if (buttonLike || name === 'button') {
       return 'button';
+    }
+    if (mediaOnly || name === 'picture' || name === 'figure') {
+      return 'img';
     }
     if (name === 'a') {
       return 'link';
-    }
-    if (name === 'picture' || name === 'figure') {
-      return 'img';
     }
     if (NAMED.has(name)) {
       return name;
@@ -437,7 +445,7 @@
   const internals = Object.freeze({
     VERSION, TEXTS, DEFAULTS, AGENTS, LIMITS,
     resolveLanguage, datasetOptions, mergeOptions, normalizeOptions,
-    hasOwnText, isTransparent, paintsBox, makeClassifier, selectLayers, planLayers,
+    hasOwnText, isTransparent, paintsBox, isMediaOnly, makeClassifier, selectLayers, planLayers,
     tagOf, columnEdges,
   });
 
@@ -689,8 +697,9 @@
         },
       });
       for (const layer of layers) {
-        const buttonLike = layer.kind !== 'frame' && layer.element.matches(BUTTONISH);
-        layer.tag = tagOf(layer.element.localName, layer.kind, buttonLike);
+        const block = layer.kind !== 'frame';
+        layer.tag = tagOf(layer.element.localName, layer.kind,
+          block && layer.element.matches(BUTTONISH), block && isMediaOnly(layer.element));
       }
       return layers;
     }
