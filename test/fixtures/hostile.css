@@ -1,0 +1,9 @@
+/* A transformed body contains fixed descendants, and mandatory snapping
+   fights programmatic scrolling. */
+html { scroll-snap-type: y mandatory; }
+body { margin: 0; transform: translateZ(0); font: 16px/1.5 system-ui, sans-serif; }
+section { min-height: 100vh; padding: 32px; scroll-snap-align: start; }
+.icon::before { content: "★"; }
+.star { display: inline-block; width: 24px; height: 24px; }
+.star::before { content: "✦"; }
+closed-widget { display: block; width: 200px; height: 40px; }

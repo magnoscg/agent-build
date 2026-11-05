@@ -49,7 +49,7 @@ async function open(t, path, contextOptions = {}) {
         window.__events.push({
           type,
           detail: { ...event.detail, trigger: Boolean(event.detail.trigger) },
-          hidden: document.documentElement.classList.contains('agent-building'),
+          hidden: document.documentElement.hasAttribute('data-agent-build-run'),
         });
       });
     }
@@ -69,15 +69,16 @@ const events = (page) => page.evaluate(() => window.__events);
 async function waitUntilGone(page) {
   await page.waitForFunction(() => !document.querySelector('.agent-build-stage, .agent-build-ruler, .agent-build-hud'));
   return page.evaluate(() => ({
-    building: document.documentElement.classList.contains('agent-building'),
-    marked: document.querySelectorAll('.agent-build-shown, .agent-build-frame, [class=""]').length,
+    building: document.documentElement.hasAttribute('data-agent-build-run'),
+    marked: document.querySelectorAll('[data-agent-build-reveal], [class=""]').length,
     disabled: document.querySelectorAll('[aria-disabled]').length,
     running: window.AgentBuild.isRunning(),
   }));
 }
 
-/* Records every element the run reveals, from the class mutations, and when
-   the run ends lists any visible text or media that no layer covered: that
+/* Records every element the run reveals, from the attribute mutations, and
+   when the run ends lists anything the page shows that no layer covered,
+   text or any visible leaf (media, icons, controls, components): that
    content would have waited hidden until the very end. It listens on window
    in the capture phase to run before the page's own end listeners, which may
    add content of their own. */
@@ -85,48 +86,65 @@ function trackCoverage(page) {
   return page.evaluate(() => {
     const shown = new Set();
     const frames = new Set();
+    const sequence = [];
     const note = (records) => {
-      for (const record of records) {
-        const classes = `${record.oldValue || ''} ${record.target.className}`;
-        if (/\bagent-build-shown\b/.test(classes)) {
-          shown.add(record.target);
+      for (const { target, oldValue } of records) {
+        if (oldValue === null && target.hasAttribute('data-agent-build-reveal')) {
+          sequence.push(target);
         }
-        if (/\bagent-build-frame\b/.test(classes)) {
-          frames.add(record.target);
+        for (const value of [oldValue, target.getAttribute('data-agent-build-reveal')]) {
+          if (value === 'shown') {
+            shown.add(target);
+          } else if (value === 'frame') {
+            frames.add(target);
+          }
         }
       }
     };
     const observer = new MutationObserver(note);
-    observer.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class'], attributeOldValue: true });
+    observer.observe(document.body, {
+      subtree: true, attributes: true, attributeFilter: ['data-agent-build-reveal'], attributeOldValue: true,
+    });
     window.addEventListener('agentbuild:end', () => {
       note(observer.takeRecords());
       observer.disconnect();
       const ignored = 'script, style, noscript, template, .agent-build-layer';
-      const insideShown = (element) => {
+      const visible = (element) => element.checkVisibility({ visibilityProperty: true });
+      const covered = (element) => {
         for (let node = element; node; node = node.parentElement) {
           if (shown.has(node)) {
             return true;
           }
         }
-        return false;
+        return frames.has(element);
       };
       const orphans = [];
       const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
       for (let text = walker.nextNode(); text; text = walker.nextNode()) {
         const parent = text.parentElement;
-        if (!/\S/.test(text.nodeValue) || !parent || parent.closest(ignored) || !parent.checkVisibility()) {
-          continue;
-        }
-        if (!insideShown(parent) && !frames.has(parent)) {
+        if (/\S/.test(text.nodeValue) && parent && !parent.closest(ignored) && visible(parent) && !covered(parent)) {
           orphans.push(`${parent.localName}: ${text.nodeValue.trim().slice(0, 40)}`);
         }
       }
-      for (const media of document.querySelectorAll('img, svg, video, canvas, iframe')) {
-        if (!media.closest(ignored) && media.checkVisibility() && !insideShown(media)) {
-          orphans.push(`${media.localName}`);
+      for (const element of document.body.querySelectorAll('*')) {
+        if (element.children.length > 0 || element.closest(ignored) || !visible(element)) {
+          continue;
+        }
+        const { width, height } = element.getBoundingClientRect();
+        if (width >= 1 && height >= 1 && !covered(element)) {
+          orphans.push(`<${element.localName}>`);
         }
       }
-      window.__coverage = { orphans, shown: shown.size, frames: frames.size };
+      const order = new Map(sequence.map((element, index) => [element, index]));
+      const early = [];
+      for (const [element, index] of order) {
+        for (let node = element.parentElement; node; node = node.parentElement) {
+          if (frames.has(node) && order.get(node) > index) {
+            early.push(`${element.localName} before its ${node.localName}`);
+          }
+        }
+      }
+      window.__coverage = { orphans, early, shown: shown.size, frames: frames.size };
     }, { capture: true, once: true });
   });
 }
@@ -181,7 +199,7 @@ test('a click runs the simulation, says so, pauses, and Escape restores the page
     className: button.className,
     radius: getComputedStyle(button).borderRadius,
   }));
-  assert.deepEqual(look, { className: 'agent-build-button', radius: '999px' }, 'the default look survives a run');
+  assert.deepEqual(look, { className: '', radius: '999px' }, 'the default look survives a run');
 
   const [start, end] = await events(page);
   assert.equal(start.type, 'agentbuild:start');
@@ -202,6 +220,7 @@ test('a full run builds every visible part of the demo, then cleans up', async (
   await page.waitForFunction(() => window.__coverage, null, { timeout: 60000 });
   const coverage = await page.evaluate(() => window.__coverage);
   assert.deepEqual(coverage.orphans, []);
+  assert.deepEqual(coverage.early, [], 'no block appears before its frame');
   const end = (await events(page)).at(-1);
   assert.equal(end.detail.skipped, false);
   assert.equal(end.detail.built, end.detail.total);
@@ -218,7 +237,9 @@ test('a page built from divs gets every part built too', async (t) => {
   await page.evaluate(() => window.AgentBuild.start({ pace: 0.25, count: 40 }));
 
   await page.waitForFunction(() => window.__coverage, null, { timeout: 60000 });
-  assert.deepEqual((await page.evaluate(() => window.__coverage)).orphans, []);
+  const coverage = await page.evaluate(() => window.__coverage);
+  assert.deepEqual(coverage.orphans, []);
+  assert.deepEqual(coverage.early, []);
   await waitUntilGone(page);
   await assertClean(page, problems);
 });
@@ -294,7 +315,167 @@ test('under reduced motion the button never appears and start() refuses', async 
   assert.equal(await page.evaluate(() => document.querySelector('[data-agent-build]').hidden), true);
   assert.equal(await page.locator('[data-demo-run]').first().isVisible(), false);
   assert.equal(await page.evaluate(() => window.AgentBuild.start()), false);
-  assert.equal(await page.evaluate(() => document.documentElement.classList.contains('agent-building')), false);
+  assert.equal(await page.evaluate(() => document.documentElement.hasAttribute('data-agent-build-run')), false);
   assert.deepEqual(await events(page), []);
+  await assertClean(page, problems);
+});
+
+/* Samples, on every frame of the run, what must never happen on the
+   page-rules fixture. */
+function watchPageRules(page) {
+  return page.evaluate(() => {
+    const breaches = new Set();
+    const check = () => {
+      if (document.documentElement.getAttribute('data-agent-build-run') === 'building') {
+        const visibility = (id) => getComputedStyle(document.getElementById(id)).visibility;
+        if (visibility('dropdown') !== 'hidden') {
+          breaches.add('a dropdown the page hides was shown');
+        }
+        if (visibility('error') !== 'hidden') {
+          breaches.add('an error message the page hides was shown');
+        }
+        if (!document.getElementById('webfont').closest('[data-agent-build-reveal]') && visibility('webfont') !== 'hidden') {
+          breaches.add('a heading the page makes visible escaped before its turn');
+        }
+        if (document.getElementById('top').hasAttribute('data-agent-build-reveal') && visibility('top') !== 'visible') {
+          breaches.add('a revealed header disappeared when its class attribute changed');
+        }
+        const logo = getComputedStyle(document.getElementById('dim'));
+        if (parseFloat(logo.opacity) > 0.51 || !logo.filter.includes('grayscale')) {
+          breaches.add('a dimmed, filtered logo lost its own opacity or filter');
+        }
+        if (visibility('chat') !== 'visible') {
+          breaches.add('a fixed control was hidden');
+        }
+      }
+      if (!window.__breaches) {
+        requestAnimationFrame(check);
+      }
+    };
+    document.addEventListener('agentbuild:end', () => {
+      window.__breaches = [...breaches];
+    }, { once: true });
+    requestAnimationFrame(check);
+  });
+}
+
+test('the page keeps its own rules: what it hides stays hidden and nothing shows early', async (t) => {
+  const { page, problems } = await open(t, '/test/fixtures/page-rules.html');
+  await trackCoverage(page);
+  await watchPageRules(page);
+  await page.evaluate(() => window.AgentBuild.start({ pace: 0.25, count: 40 }));
+
+  await page.waitForFunction(() => window.__coverage && window.__breaches, null, { timeout: 60000 });
+  assert.deepEqual(await page.evaluate(() => window.__breaches), []);
+  const coverage = await page.evaluate(() => window.__coverage);
+  assert.deepEqual(coverage.orphans, []);
+  assert.deepEqual(coverage.early, []);
+  assert.ok(await page.evaluate(() => scrollY > 0 || document.getElementById('top').className === 'top'));
+  await waitUntilGone(page);
+  assert.deepEqual(await page.evaluate(() => ['dropdown', 'error', 'webfont']
+    .map((id) => getComputedStyle(document.getElementById(id)).visibility)), ['hidden', 'hidden', 'visible']);
+  await assertClean(page, problems);
+});
+
+test('boxes are measured after the page settles its start transitions', async (t) => {
+  const { page, problems } = await open(t, '/test/fixtures/page-rules.html');
+  await page.evaluate(() => window.AgentBuild.start({ count: 1 }));
+  await page.locator('.agent-build-box').waitFor();
+
+  const [box, target] = await page.evaluate(() => [
+    document.querySelector('.agent-build-box'),
+    document.getElementById('reveal'),
+  ].map((element) => {
+    const rect = element.getBoundingClientRect();
+    return [rect.left, rect.top, rect.width, rect.height].map(Math.round);
+  }));
+  assert.deepEqual(box, target);
+  await page.evaluate(() => window.AgentBuild.stop());
+  await waitUntilGone(page);
+  await assertClean(page, problems);
+});
+
+test('a transformed body, mandatory snapping, and content no selector names', async (t) => {
+  const { page, problems } = await open(t, '/test/fixtures/hostile.html');
+  await trackCoverage(page);
+  await page.evaluate(() => {
+    window.__deepest = 0;
+    const sample = () => {
+      window.__deepest = Math.max(window.__deepest, scrollY);
+      if (!window.__coverage) {
+        requestAnimationFrame(sample);
+      }
+    };
+    requestAnimationFrame(sample);
+  });
+  await page.evaluate(() => window.AgentBuild.start({ count: 4 }));
+
+  const hud = page.locator('.agent-build-hud');
+  await hud.waitFor();
+  const placement = await page.evaluate(() => {
+    const element = document.querySelector('.agent-build-hud');
+    const ruler = document.querySelector('.agent-build-ruler--top').getBoundingClientRect();
+    const rect = element.getBoundingClientRect();
+    return {
+      onScreen: rect.top >= 0 && rect.bottom <= innerHeight,
+      rulerTop: Math.round(ruler.top),
+      topLayer: element.matches(':popover-open'),
+    };
+  });
+  assert.deepEqual(placement, { onScreen: true, rulerTop: 0, topLayer: true });
+
+  await page.waitForFunction(() => window.__coverage, null, { timeout: 60000 });
+  const coverage = await page.evaluate(() => window.__coverage);
+  assert.deepEqual(coverage.orphans, []);
+  assert.deepEqual(coverage.early, []);
+  assert.ok(await page.evaluate(() => window.__deepest > 100), 'the page followed the agents despite snapping');
+  await waitUntilGone(page);
+  await assertClean(page, problems);
+});
+
+test('a page that scrolls an inner container builds what is in view and shows the rest', async (t) => {
+  const { page, problems } = await open(t, '/test/fixtures/inner-scroll.html');
+  await trackCoverage(page);
+  await page.evaluate(() => window.AgentBuild.start({ pace: 0.25, count: 40 }));
+
+  await page.waitForFunction(() => window.__coverage, null, { timeout: 60000 });
+  const coverage = await page.evaluate(() => window.__coverage);
+  assert.deepEqual(coverage.orphans, []);
+  const end = (await events(page)).at(-1);
+  assert.equal(end.detail.total, 5, 'header, heading, section, heading and paragraph in view');
+  assert.equal(end.detail.built, 5);
+  await waitUntilGone(page);
+  await assertClean(page, problems);
+});
+
+test('pausing while blocks wait for their frames, then Escape, ends cleanly', async (t) => {
+  const { page, problems } = await open(t, '/');
+  await page.evaluate(() => window.AgentBuild.start({ count: 40 }));
+  await page.waitForFunction(() => document.querySelectorAll('.agent-build-box').length >= 10, null, { timeout: 20000 });
+  await page.getByRole('button', { name: 'Pause' }).click();
+  await page.waitForTimeout(300);
+  await page.keyboard.press('Escape');
+
+  assert.deepEqual(await waitUntilGone(page), { building: false, marked: 0, disabled: 0, running: false });
+  assert.equal((await events(page)).at(-1).detail.skipped, true);
+  assert.equal(await page.evaluate(() => window.AgentBuild.start({ pace: 0.25 })), true, 'a new run can start');
+  assert.equal(await page.evaluate(() => window.AgentBuild.stop()), true);
+  await waitUntilGone(page);
+  await assertClean(page, problems);
+});
+
+test('a run never builds for much longer than twenty seconds, whatever the options', async (t) => {
+  const { page, problems } = await open(t, '/');
+  await trackCoverage(page);
+  const started = Date.now();
+  await page.evaluate(() => window.AgentBuild.start({ count: 1, pace: 4 }));
+
+  await page.waitForFunction(() => window.__coverage, null, { timeout: 45000 });
+  assert.ok(Date.now() - started < 26000, `${Date.now() - started} ms`);
+  const end = (await events(page)).at(-1);
+  assert.equal(end.detail.skipped, false);
+  assert.equal(end.detail.built, end.detail.total);
+  assert.deepEqual((await page.evaluate(() => window.__coverage)).orphans, []);
+  await waitUntilGone(page);
   await assertClean(page, problems);
 });

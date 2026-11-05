@@ -81,12 +81,14 @@ and numbers are clamped, so a typo never breaks the page.
 
 - `--agent-accent` sets the accent colour from your CSS, on `:root` or on the
   button. `--agent-mono` sets the monospace font of the labels and the HUD.
-- A trigger without classes of its own gets the class `agent-build-button`,
-  which carries the default look. Give the button your own classes and it is
-  yours to style. Add `agent-build-button` next to them to keep the default.
+- A trigger without a `class` attribute takes the default look. Give it your
+  own classes and it is yours to style; add `agent-build-button` next to them
+  to keep the default. The default look lives in the `agent-build` cascade
+  layer, so any rule of your page wins over it.
 - The five agent dots are available for your own button:
   `<span class="agent-build-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>`.
-  They hop in a wave unless the visitor prefers reduced motion.
+  They hop in a wave while the button is hovered or focused, unless the
+  visitor prefers reduced motion.
 
 ## API
 
@@ -117,7 +119,8 @@ Both are dispatched on `document` and bubble to `window`.
 | `agentbuild:end` | Once the page is back, however the run ended | `{ skipped, built, total, seconds }` |
 
 `agentbuild:start` is the place to put scroll-reveal effects in their final
-state, so the agents measure the page as it really looks:
+state. The library waits for the transitions they start, up to a second and
+a half, so the agents measure the page as it really looks:
 
 ```js
 document.addEventListener('agentbuild:start', () => {
@@ -129,27 +132,33 @@ document.addEventListener('agentbuild:start', () => {
 
 ## How it picks the blocks
 
-Every element under `<body>` is one of these, in document order:
+The page is measured while it is still visible, then hidden. Every element
+under `<body>` is one of these, in document order:
 
 - A **frame** matches `frames`, or paints a box of its own (a background, a
   shadow or a border all round), or holds loose text next to other blocks. Its
-  box is revealed first and it is looked inside, so its parts get built one by
-  one.
-- An **atom** matches `atoms`, or holds loose text, or is a component with a
-  shadow root. It is revealed with everything inside it, which is how nested
-  matches are deduplicated: a link inside a paragraph is part of the
-  paragraph. A link that wraps blocks, the usual card, counts as a frame. A
-  block that holds media and no text, like a link around a screenshot or a
-  store badge, is labelled as an image and fades in.
-- Anything else is a wrapper the walk looks inside, and anything under 2 px is
-  not a layer, though what it holds may be.
+  box is revealed first and it is looked inside; what it holds waits for it,
+  then gets built part by part.
+- An **atom** matches `atoms`, or holds loose text, or is an SVG, a MathML
+  formula or a component with a shadow root. It is revealed with everything
+  inside it, which is how nested matches are deduplicated: a link inside a
+  paragraph is part of the paragraph. A link that wraps blocks, the usual
+  card, counts as a frame. A block that holds media and no text, like a link
+  around a screenshot or a store badge, is labelled as its media and fades in.
+- Whatever no layer covers, such as an icon-font glyph or a component with a
+  closed shadow root, and whatever is fixed to the window, is shown as it is
+  rather than hidden: right away, or together with its frame.
+- What the page hides itself stays hidden, during the run and after.
 
-Up to 160 layers get built, about fifteen seconds. On longer pages the rest is
-shown from the start, so nothing waits hidden for minutes.
+A run builds for about twenty seconds, pauses aside, whatever the pace and
+count; then the rest of the page appears at once. Each block is measured again
+when its agent takes it, so fonts, images or transitions that move things
+cannot leave a box behind. When the page scrolls an inner container instead of
+the document, the blocks in view are built and the rest is shown as it is.
 
-Before measuring, it loads lazy images and waits up to a second for any image
-still loading, so an image without `width` and `height` cannot shift the page
-halfway through the run.
+The run's state lives in attributes of its own, `data-agent-build-run` on
+`<html>` and `data-agent-build-reveal` on the revealed blocks, never in your
+classes, so a framework that rewrites `class` cannot undo it.
 
 ## Accessibility
 
@@ -189,9 +198,12 @@ The demo page runs under `default-src 'self'; script-src 'self'; style-src
 
 ## Browser support
 
-Current Chrome, Edge, Firefox and Safari, from 2021 on. Where Web Animations
-are missing, the button simply stays hidden. The automated smoke test runs in
-Chrome; Safari and Firefox are not tested automatically yet.
+Current Chrome, Edge, Firefox and Safari, from 2022 on: the hiding relies on
+cascade layers. Where cascade layers or Web Animations are missing, the
+button simply stays hidden. The HUD and the top ruler go to the top layer
+through the Popover API where it exists (2024 on), out of reach of the page's
+stacking contexts. The automated smoke test runs in Chrome; Safari and Firefox
+are not tested automatically yet.
 
 ## Development
 

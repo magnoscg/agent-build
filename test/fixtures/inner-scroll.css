@@ -1,0 +1,3 @@
+html, body { height: 100%; margin: 0; overflow: hidden; font: 16px/1.5 system-ui, sans-serif; }
+#app { height: 100vh; overflow-y: auto; padding: 24px; box-sizing: border-box; }
+.far { margin-top: 2400px; }

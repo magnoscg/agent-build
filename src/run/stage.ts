@@ -1,5 +1,5 @@
 import { el, FADE_IN, FADE_OUT, svg } from '../dom.ts';
-import { type Layer, MEDIA } from '../layers.ts';
+import { type Layer, MEDIA_LABELS } from '../layers.ts';
 import { EASE, move, play, sleep } from './animate.ts';
 import type { Agent, Run } from './types.ts';
 
@@ -15,6 +15,19 @@ export function layerElement<Tag extends keyof HTMLElementTagNameMap>(run: Run, 
     element.style.setProperty('--agent-accent', run.config.accent);
   }
   return element;
+}
+
+/* Fixed overlays go to the top layer where popovers exist, out of reach of
+   the page's stacking contexts and of a body that would contain them. */
+export function float(element: HTMLElement) {
+  const popover = typeof element.showPopover === 'function';
+  if (popover) {
+    element.popover = 'manual';
+  }
+  document.body.append(element);
+  if (popover) {
+    element.showPopover();
+  }
 }
 
 /* The work layer covers the whole document, so cursors and boxes use page
@@ -33,18 +46,25 @@ export function makeStage(run: Run) {
   return stage;
 }
 
+export function growStage(stage: HTMLElement, bottom: number) {
+  if (bottom > parseFloat(stage.style.height)) {
+    stage.style.height = `${Math.ceil(bottom)}px`;
+  }
+}
+
 /* The top ruler is fixed to the window; the side ruler lives in the work
-   layer, so its figures are real page coordinates. */
-export function makeRulers(run: Run, stage: HTMLElement) {
+   layer, so its figures are page coordinates. Figures stop a little past the
+   last layer to be built. */
+export function makeRulers(run: Run, stage: HTMLElement, bottom: number) {
   const top = layerElement(run, 'div', 'agent-build-ruler agent-build-ruler--top');
   top.setAttribute('aria-hidden', 'true');
   for (let x = 100; x < innerWidth; x += 100) {
     top.append(rulerMark(x, 'left'));
   }
-  document.body.append(top);
+  float(top);
   const side = el('div', 'agent-build-ruler agent-build-ruler--side');
-  const height = parseFloat(stage.style.height);
-  for (let y = 100; y < height; y += 100) {
+  const end = Math.min(parseFloat(stage.style.height), bottom + innerHeight * 2);
+  for (let y = 100; y < end; y += 100) {
     side.append(rulerMark(y, 'top'));
   }
   stage.append(side);
@@ -68,7 +88,7 @@ export function makeGuide(stage: HTMLElement, axis: 'column' | 'row', position: 
    leaves before the picture goes in. */
 export function makeBox(stage: HTMLElement, layer: Layer, qa: boolean) {
   const element = el('div', ['agent-build-box', qa && 'agent-build-box--qa',
-    MEDIA.has(layer.tag) && 'agent-build-box--media'].filter(Boolean).join(' '));
+    MEDIA_LABELS.has(layer.tag) && 'agent-build-box--media'].filter(Boolean).join(' '));
   element.style.left = `${layer.x}px`;
   element.style.top = `${layer.y}px`;
   element.style.width = `${layer.w}px`;

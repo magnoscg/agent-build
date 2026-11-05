@@ -1,16 +1,15 @@
 import { FADE_IN, FADE_OUT } from '../dom.ts';
-import {
-  BUTTONISH, columnEdges, isMediaOnly, type Layer, makeClassifier, planLayers, selectLayers, tagOf,
-} from '../layers.ts';
+import { columnEdges, labelOf, type Layer, makeClassifier, type Rest, selectLayers } from '../layers.ts';
 import { LOCALES, resolveLanguage } from '../locales/index.ts';
 import {
   AGENTS, type Config, datasetOptions, LIMITS, mergeOptions, normalizeOptions, type StartOptions,
 } from '../options.ts';
-import { cssLoaded, env, languageOf, supported, triggers } from '../page.ts';
+import { cssLoaded, env, languageOf, REVEAL, RUN, supported, triggers } from '../page.ts';
 import { ignoreAbort, play } from './animate.ts';
 import { work } from './build.ts';
 import { follow, listen } from './follow.ts';
 import { makeHud } from './hud.ts';
+import { mark, releaseAll, showNow } from './reveal.ts';
 import { intro, makeGuide, makeRulers, makeStage } from './stage.ts';
 import type { Run } from './types.ts';
 
@@ -67,8 +66,8 @@ function emit(type: string, detail: StartDetail | EndDetail) {
   document.dispatchEvent(new CustomEvent(`agentbuild:${type}`, { bubbles: true, detail }));
 }
 
-async function begin(config: Config, language: string, trigger: Element | null) {
-  const run: Run = {
+function createRun(config: Config, language: string, trigger: Element | null): Run {
+  return {
     config,
     text: LOCALES[language],
     decimal: new Intl.NumberFormat(language, { maximumFractionDigits: 1 }),
@@ -82,8 +81,11 @@ async function begin(config: Config, language: string, trigger: Element | null) 
     active: new Set(),
     listeners: new AbortController(),
     layers: [],
-    shown: [],
     queue: [],
+    marked: [],
+    gates: new Map(),
+    opened: new Set(),
+    restIn: new Map(),
     built: 0,
     frame: 0,
     startedAt: performance.now(),
@@ -94,45 +96,47 @@ async function begin(config: Config, language: string, trigger: Element | null) 
     ruler: null,
     ui: null,
   };
+}
+
+async function begin(config: Config, language: string, trigger: Element | null) {
+  const run = createRun(config, language, trigger);
   current = run;
 
-  /* Fired before anything is measured or hidden, so a page can force its
-     scroll-reveal effects to their final state first. */
+  /* Fired before anything is measured, so a page can put its scroll-reveal
+     effects in their final state first. */
   emit('start', { trigger });
   if (!run.running) {
     return;
   }
 
+  const root = document.documentElement;
   const end = () => finish(run, true);
+  listen(run, end);
+  root.setAttribute(RUN, 'measuring');
+  for (const element of triggers()) {
+    element.setAttribute('aria-disabled', 'true');
+  }
+  for (const hud of document.querySelectorAll('.agent-build-hud')) {
+    hud.remove();
+  }
+  window.scrollTo(0, 0);
   try {
-    for (const hud of document.querySelectorAll('.agent-build-hud')) {
-      hud.remove();
-    }
-    for (const element of triggers()) {
-      element.setAttribute('aria-disabled', 'true');
-    }
-    document.documentElement.classList.add('agent-building');
-    window.scrollTo(0, 0);
     await settle();
     if (!run.running) {
       return;
     }
-
-    const plan = planLayers(collectLayers(config), LIMITS.layers);
-    run.layers = plan.build;
-    run.shown = plan.shown;
-    run.queue = [...plan.build];
-    for (const layer of plan.shown) {
-      layer.element.classList.add(layer.kind === 'frame' ? 'agent-build-frame' : 'agent-build-shown');
-    }
+    const { layers, rest } = collect(config);
+    plan(run, layers, rest);
+    run.width = innerWidth;
+    root.setAttribute(RUN, 'building');
 
     const stage = makeStage(run);
     run.stage = stage;
-    run.ruler = makeRulers(run, stage);
+    const last = run.layers.at(-1);
+    run.ruler = makeRulers(run, stage, last ? last.y + last.h : innerHeight);
     play(run, run.ruler, FADE_IN, { duration: 400 });
     run.ui = makeHud(run, end);
     run.ui.pause.focus({ preventScroll: true });
-    listen(run, end);
 
     const agents = await intro(run, stage);
     for (const edge of columnEdges(run.layers)) {
@@ -146,20 +150,17 @@ async function begin(config: Config, language: string, trigger: Element | null) 
   finish(run, false);
 }
 
-/* Waits for the web fonts and for every image still loading, lazy ones
-   included, so boxes are measured on the final layout: an image without
-   dimensions is 0×0 until it loads. The wait is capped. */
+/* Measures the page as it really looks: after the web fonts, and after any
+   finite transition or animation in progress, such as the scroll reveals a
+   page settles in its agentbuild:start listener. The wait is capped. */
 function settle() {
-  const pending: Promise<unknown>[] = [];
-  for (const image of document.querySelectorAll('img')) {
-    if (image.loading === 'lazy') {
-      image.loading = 'eager';
-    }
-    if (!image.complete) {
-      pending.push(image.decode().catch(() => {}));
+  const pending: Promise<unknown>[] = [document.fonts.ready];
+  for (const animation of document.getAnimations()) {
+    const end = animation.effect?.getComputedTiming().endTime;
+    if (animation.playState === 'running' && typeof end === 'number' && Number.isFinite(end)) {
+      pending.push(animation.finished.catch(() => {}));
     }
   }
-  pending.push(document.fonts.ready);
   return Promise.race([
     Promise.all(pending),
     new Promise((resolve) => {
@@ -168,29 +169,48 @@ function settle() {
   ]);
 }
 
-function collectLayers(config: Config): Layer[] {
-  const layers = selectLayers<Element>(document.body, {
+function collect(config: Config) {
+  const { layers, rest } = selectLayers<Element>(document.body, {
     childrenOf: (node) => node.children,
     classify: makeClassifier(config, (element) => getComputedStyle(element)),
     measure: (element) => {
       const rect = element.getBoundingClientRect();
       return { x: rect.left + scrollX, y: rect.top + scrollY, w: rect.width, h: rect.height };
     },
+    limit: LIMITS.layers,
   });
   for (const layer of layers) {
-    const block = layer.kind !== 'frame';
-    layer.tag = tagOf(layer.element.localName, layer.kind,
-      block && layer.element.matches(BUTTONISH), block && isMediaOnly(layer.element));
+    layer.tag = labelOf(layer.element, layer.kind);
   }
-  return layers;
+  return { layers, rest };
 }
 
-/* Leaves an element as the page had it, without even an empty class
-   attribute. */
-function unmark(element: Element, ...names: string[]) {
-  element.classList.remove(...names);
-  if (element.getAttribute('class') === '') {
-    element.removeAttribute('class');
+const showable = (element: Element) => {
+  const style = getComputedStyle(element);
+  return style.display !== 'none' && style.visibility === 'visible';
+};
+
+/* What is not built is shown as it is: right away when nothing contains it,
+   or with its frame. When the document itself does not scroll, because the
+   page scrolls an inner container, only what is in view gets built. */
+function plan(run: Run, layers: Layer[], rest: Rest[]) {
+  const scrolls = document.documentElement.scrollHeight > innerHeight + 1;
+  run.layers = scrolls ? layers : layers.filter((layer) => layer.y < innerHeight);
+  run.queue = [...run.layers];
+  for (const { element, parent } of rest) {
+    if (!showable(element)) {
+      continue;
+    }
+    if (parent) {
+      run.restIn.set(parent, [...(run.restIn.get(parent) ?? []), element]);
+    } else {
+      mark(run, element, 'shown');
+    }
+  }
+  if (!scrolls) {
+    for (const layer of layers.filter((candidate) => candidate.y >= innerHeight)) {
+      showNow(run, layer);
+    }
   }
 }
 
@@ -216,10 +236,11 @@ function finish(run: Run, skipped: boolean) {
     animation.cancel();
   }
   run.animations.clear();
+  releaseAll(run);
 
-  unmark(document.documentElement, 'agent-building');
-  for (const { element } of run.layers.concat(run.shown)) {
-    unmark(element, 'agent-build-shown', 'agent-build-frame');
+  document.documentElement.removeAttribute(RUN);
+  for (const element of run.marked) {
+    element.removeAttribute(REVEAL);
   }
   for (const element of triggers()) {
     element.removeAttribute('aria-disabled');

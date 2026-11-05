@@ -1,0 +1,12 @@
+body { margin: 0; padding: 24px; font: 16px/1.5 system-ui, sans-serif; }
+.reveal { visibility: hidden; transform: translateY(24px); transition: transform 0.6s; }
+.reveal.is-revealed { visibility: visible; transform: none; }
+.top { padding: 12px; background: #F1F1F6; }
+.top.scrolled { background: #E2E2EA; }
+.menu { position: relative; }
+.dropdown { position: absolute; visibility: hidden; background: #FFFFFF; }
+.wf-active h1 { visibility: visible; }
+.error { visibility: hidden; color: #B00020; }
+.dim { opacity: 0.5; filter: grayscale(1); }
+.spacer { height: 1600px; }
+.chat { position: fixed; right: 20px; bottom: 20px; }
