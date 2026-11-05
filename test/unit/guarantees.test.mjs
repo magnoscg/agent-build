@@ -97,6 +97,8 @@ test('the package publishes the built files and nothing else, publicly', () => {
   assert.deepEqual(pkg.files, ['dist']);
   assert.equal(pkg.publishConfig.access, 'public');
   assert.deepEqual(pkg.exports['.'], { types: './dist/types/index.d.ts', default: './dist/agent-build.mjs' });
+  assert.deepEqual(pkg.exports['./auto'], { types: './dist/types/auto.d.ts', default: './dist/auto.mjs' });
+  assert.ok(pkg.sideEffects.includes('./dist/auto.mjs'), 'bundlers keep the auto entry');
   assert.equal(pkg.exports['./agent-build.css'], './dist/agent-build.css');
   assert.equal(pkg.dependencies, undefined, 'no runtime dependencies');
   for (const version of Object.values(pkg.devDependencies)) {

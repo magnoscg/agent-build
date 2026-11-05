@@ -1,4 +1,5 @@
-import { isRunning, start, type StartOptions, stop, version } from '@magnoscg/agent-build';
+import { defineElement, isRunning, mount, start, type StartOptions, stop, version } from '@magnoscg/agent-build';
+import '@magnoscg/agent-build/auto';
 
 const options: StartOptions = { pace: 2, count: '8', accent: '#0A84FF', trigger: document.querySelector('button') };
 const started: boolean = start(options);
@@ -9,6 +10,11 @@ const label: string = version;
 // @ts-expect-error pace is a number or a numeric string
 start({ pace: true });
 
+mount(document.getElementById('app') ?? document);
+defineElement();
+const button: HTMLElement = document.createElement('agent-build-button');
+button.setAttribute('data-agent-count', '5');
+
 document.addEventListener('agentbuild:end', (event) => {
   const summary: [boolean, number, number, number] = [
     event.detail.skipped, event.detail.built, event.detail.total, event.detail.seconds,
@@ -17,5 +23,6 @@ document.addEventListener('agentbuild:end', (event) => {
 });
 
 window.AgentBuild?.start({ count: 3 });
+window.AgentBuild?.mount();
 
 export { label, running, started, stopped };

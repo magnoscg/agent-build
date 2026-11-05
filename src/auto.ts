@@ -1,14 +1,16 @@
-import { type AgentBuildApi, isRunning, start, stop, version } from './index.ts';
-import { setUpTriggers } from './triggers.ts';
+import { type AgentBuildApi, defineElement, isRunning, mount, start, stop, version } from './index.ts';
 
-/* The classic-script build: defines window.AgentBuild and wires the buttons
-   once the document is parsed. A second copy of the script reuses the first. */
-if (!window.AgentBuild) {
-  const api: AgentBuildApi = Object.freeze({ version, start, stop, isRunning });
+/* What the <script> tag and `import '@magnoscg/agent-build/auto'` do: define
+   window.AgentBuild, define <agent-build-button> and mount the triggers once
+   the document is parsed. A second copy reuses the first; anything else that
+   took the name, such as an element with id="AgentBuild", does not count. */
+if (typeof window !== 'undefined' && typeof window.AgentBuild?.start !== 'function') {
+  const api: AgentBuildApi = Object.freeze({ version, start, stop, isRunning, mount });
   window.AgentBuild = api;
+  defineElement();
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setUpTriggers, { once: true });
+    document.addEventListener('DOMContentLoaded', () => mount(), { once: true });
   } else {
-    setUpTriggers();
+    mount();
   }
 }

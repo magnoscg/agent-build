@@ -31,6 +31,10 @@
       "types": "./dist/types/index.d.ts",
       "default": "./dist/agent-build.mjs"
     },
+    "./auto": {
+      "types": "./dist/types/auto.d.ts",
+      "default": "./dist/auto.mjs"
+    },
     "./agent-build.css": "./dist/agent-build.css",
     "./dist/*": "./dist/*",
     "./package.json": "./package.json"
@@ -38,6 +42,7 @@
   "sideEffects": [
     "./dist/agent-build.js",
     "./dist/agent-build.min.js",
+    "./dist/auto.mjs",
     "*.css"
   ],
   "files": [
