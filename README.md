@@ -35,22 +35,24 @@ every version: take the snippet from the README of the version you use.
 
 ### Self-hosted or from npm
 
-The library is two files: copy `dist/agent-build.js` and
-`dist/agent-build.css` next to your site and link them, or install the
-package:
+The library is two files, `agent-build.js` (or `agent-build.min.js`) and
+`agent-build.css`. Take them from the npm package or from jsDelivr and serve
+them next to your site, or install the package:
 
 ```sh
 pnpm add @magnoscg/agent-build
 ```
 
 ```js
-import '@magnoscg/agent-build';
+import { start, stop } from '@magnoscg/agent-build';
 import '@magnoscg/agent-build/agent-build.css';
 ```
 
-Importing the script defines `window.AgentBuild` and wires the buttons on the
-page, like the `<script>` tag does. Outside a browser, during server-side
-rendering for instance, it does nothing and `start()` returns `false`.
+The package entry is an ES module with typed named exports and no side
+effects, so it is safe to import during server-side rendering, where
+`start()` returns `false`. To wire the `[data-agent-build]` buttons from a
+bundle, the way the `<script>` tag does, import
+`@magnoscg/agent-build/dist/agent-build.js`.
 
 ## Options
 
@@ -191,21 +193,24 @@ Current Chrome, Edge, Firefox and Safari, from 2021 on. Where Web Animations
 are missing, the button simply stays hidden. The automated smoke test runs in
 Chrome; Safari and Firefox are not tested automatically yet.
 
-Size: about 14 KB of JavaScript and 4 KB of CSS, gzipped. The files are
-readable source with comments, not minified.
-
 ## Development
 
+The source is TypeScript in `src/`, built with esbuild into `dist/`, which is
+not committed.
+
 ```sh
-pnpm install   # playwright-core, only for the browser smoke test
-pnpm test      # node --test: layer selection, languages, options, guarantees
-pnpm smoke     # the real library in your installed Chrome, sandboxed
-pnpm demo      # the demo at http://127.0.0.1:4173/
-pnpm sri       # refresh the integrity hashes in this README after editing dist/
+pnpm install       # TypeScript, esbuild and playwright-core
+pnpm typecheck     # tsc, strict
+pnpm test:unit     # node --test on src/ directly: layers, languages, options, guarantees
+pnpm build         # dist/: classic script, ES module, stylesheet and types
+pnpm test:dist     # the built files: exports, Node ESM imports, TypeScript consumers
+pnpm smoke         # the real library in your installed Chrome, sandboxed
+pnpm demo          # the demo at http://127.0.0.1:4173/
+pnpm test:release  # the snippets' version and integrity hashes, before a release
 ```
 
-There is no build step: `dist/` is the source. CI runs `pnpm test` only; the
-smoke test needs Google Chrome installed and runs locally.
+CI runs everything but the smoke test, on Node 24 and 26; the smoke test needs
+Google Chrome installed and runs locally.
 
 ## Credits
 

@@ -20,16 +20,26 @@
   },
   "license": "MIT",
   "author": "Oscar Canton (https://github.com/magnoscg)",
-  "main": "dist/agent-build.js",
-  "style": "dist/agent-build.css",
-  "jsdelivr": "dist/agent-build.js",
-  "unpkg": "dist/agent-build.js",
+  "type": "module",
+  "main": "./dist/agent-build.mjs",
+  "types": "./dist/types/index.d.ts",
+  "style": "./dist/agent-build.css",
+  "jsdelivr": "./dist/agent-build.min.js",
+  "unpkg": "./dist/agent-build.min.js",
   "exports": {
-    ".": "./dist/agent-build.js",
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/agent-build.mjs"
+    },
     "./agent-build.css": "./dist/agent-build.css",
     "./dist/*": "./dist/*",
     "./package.json": "./package.json"
   },
+  "sideEffects": [
+    "./dist/agent-build.js",
+    "./dist/agent-build.min.js",
+    "*.css"
+  ],
   "files": [
     "dist"
   ],
@@ -37,13 +47,20 @@
     "access": "public"
   },
   "scripts": {
-    "test": "node --test test/*.test.mjs",
-    "smoke": "node --test scripts/smoke.mjs",
-    "demo": "node scripts/serve.mjs",
-    "sri": "node scripts/sri.mjs"
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "pnpm test:unit",
+    "test:unit": "node --test \"test/unit/*.test.mjs\"",
+    "test:dist": "node --test \"test/dist/*.test.mjs\"",
+    "test:release": "node --test \"test/release/*.test.mjs\"",
+    "smoke": "pnpm build && node --test scripts/smoke.mjs",
+    "demo": "pnpm build && node scripts/serve.mjs",
+    "sri": "pnpm build && node scripts/sri.mjs"
   },
   "packageManager": "pnpm@11.18.0",
   "devDependencies": {
-    "playwright-core": "1.64.1"
+    "esbuild": "0.28.2",
+    "playwright-core": "1.64.1",
+    "typescript": "7.0.2"
   }
 }

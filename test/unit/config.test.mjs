@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { internals, library } from './helpers.mjs';
-
-const { normalizeOptions, mergeOptions, datasetOptions, DEFAULTS, AGENTS, LIMITS } = internals;
+import * as library from '../../src/index.ts';
+import { AGENTS, DEFAULTS, LIMITS, datasetOptions, mergeOptions, normalizeOptions } from '../../src/options.ts';
+import { VERSION } from '../../src/version.ts';
 
 function strictEnv() {
   const warnings = [];
@@ -126,7 +126,7 @@ test('options passed to start() win over data attributes', () => {
 });
 
 test('outside a browser the API exists and refuses to run', () => {
-  assert.equal(library.version, internals.VERSION);
+  assert.equal(library.version, VERSION);
   assert.equal(library.start(), false);
   assert.equal(library.stop(), false);
   assert.equal(library.isRunning(), false);

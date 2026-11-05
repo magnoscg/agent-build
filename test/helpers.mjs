@@ -1,11 +1,7 @@
-/* Shared by the tests: the library loaded the way Node loads any CommonJS
-   file, and a tiny stand-in for DOM elements, enough for the layer logic. */
-import { createRequire } from 'node:module';
-
-const require = createRequire(import.meta.url);
-
-export const library = require('../dist/agent-build.js');
-export const internals = library._internals;
+/* A tiny stand-in for DOM elements, enough for the layer logic, which the
+   tests import straight from src/. */
+import { makeClassifier, selectLayers } from '../src/layers.ts';
+import { normalizeOptions } from '../src/options.ts';
 
 export const HTML = 'http://www.w3.org/1999/xhtml';
 export const SVG = 'http://www.w3.org/2000/svg';
@@ -91,14 +87,12 @@ function find(element, selector) {
 
 export const PAINTED = Object.freeze({ backgroundColor: 'rgb(255, 255, 255)', backgroundImage: 'none', boxShadow: 'none' });
 
-/* The library's own classifier with the default configuration, reading the
-   fake `style` of each element. */
-export function defaultClassifier(config = internals.normalizeOptions({}, {})) {
-  return internals.makeClassifier(config, (element) => element.style);
+export function defaultClassifier(config = normalizeOptions({}, {})) {
+  return makeClassifier(config, (element) => element.style);
 }
 
 export function layersOf(root, classify = defaultClassifier()) {
-  return internals.selectLayers(root, {
+  return selectLayers(root, {
     childrenOf: (element) => element.children,
     classify,
     measure: (element) => element.box || { x: 0, y: 0, w: 100, h: 20 },
