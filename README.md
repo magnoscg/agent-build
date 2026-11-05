@@ -50,8 +50,8 @@ Security Policy and Trusted Types.
 ## Quick start
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.0/dist/agent-build.css" integrity="sha384-crlu5HFBkzAGiZJnrNzC+LIuus1TWtFBxHf2ZZPAdlocNAzB9iqPdp2Xao/q0q36" crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.0/dist/agent-build.js" integrity="sha384-QEspZHO+uaBwIqiLXN1S5HLqHANbXZEw0IPv6bRg6Aft+R/aoVBjqmmeoKeb/Ma8" crossorigin="anonymous" defer></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.0/dist/agent-build.css" integrity="sha384-E0ogbToiARWkK9fsLJBkgyhz6eSASeMjaDa7ToMGpRRm2OrwzNZjMO7XNNnucfVE" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.0/dist/agent-build.js" integrity="sha384-rD4o+VrOYbVtwba0/RL5I/N908uOEbQ/siVmjVIu7stmtJXvvecKkRvyxuYkTRw2" crossorigin="anonymous" defer></script>
 <button data-agent-build hidden></button>
 ```
 
