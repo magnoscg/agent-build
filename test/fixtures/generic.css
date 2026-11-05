@@ -1,0 +1,11 @@
+/* Div soup, the way many real pages are built. */
+body { margin: 0; font: 16px/1.5 system-ui, sans-serif; }
+#app { max-width: 880px; margin: 0 auto; padding: 24px; }
+.topbar { display: flex; justify-content: space-between; padding: 12px 16px; border-radius: 10px; background: #F1F1F6; }
+.links { display: flex; gap: 16px; }
+.hero { padding: 48px 0; }
+.title { font-size: 40px; font-weight: 700; }
+.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.card { display: block; padding: 16px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); color: inherit; }
+.card-title { font-weight: 600; }
+table, details, dl, blockquote, form, custom-thing { display: block; margin: 24px 0; }
