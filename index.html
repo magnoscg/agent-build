@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The demo runs under the strictest policy the library claims to
+       support: no inline styles or scripts, no data: images, and Trusted
+       Types enforced with no policy at all. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types 'none'">
+  <title>agent-build · watch a swarm of AI agents build your page</title>
+  <meta name="description" content="A simulation: one button hides your page and a swarm of AI agent cursors builds it back, block by block. Vanilla JS, no dependencies, strict-CSP friendly.">
+  <link rel="icon" href="demo/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="demo/demo.css">
+  <link rel="stylesheet" href="dist/agent-build.css">
+  <script src="demo/demo.js" defer></script>
+  <script src="dist/agent-build.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="./"><img src="demo/icon.svg" alt="" width="28" height="28">agent-build</a>
+      <nav aria-label="Main">
+        <ul>
+          <li><a href="#install">Install</a></li>
+          <li><a href="#options">Options</a></li>
+          <li><a href="#api">API</a></li>
+          <li><a href="https://github.com/magnoscg/agent-build">GitHub</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="wrap">
+        <p class="eyebrow">Vanilla JS · no dependencies · strict CSP</p>
+        <h1>Watch a swarm of AI agents build your page.</h1>
+        <p class="lead">agent-build is a simulation. One button hides the page and a swarm of agent cursors puts it back together, block by block, with selection boxes, sizes, guides and canvas rulers. It always tells your visitors it is a simulation, in their language.</p>
+        <div class="cta-row">
+          <button data-agent-build hidden></button>
+          <a class="btn" href="https://github.com/magnoscg/agent-build">View on GitHub</a>
+        </div>
+        <p class="languages">The simulation in
+          <a href="?lang=en" hreflang="en" lang="en" data-demo-lang="en">English</a>,
+          <a href="?lang=es" hreflang="es" lang="es" data-demo-lang="es">español</a>,
+          <a href="?lang=fr" hreflang="fr" lang="fr" data-demo-lang="fr">français</a>,
+          <a href="?lang=de" hreflang="de" lang="de" data-demo-lang="de">Deutsch</a>,
+          <a href="?lang=it" hreflang="it" lang="it" data-demo-lang="it">italiano</a>,
+          <a href="?lang=nl" hreflang="nl" lang="nl" data-demo-lang="nl">Nederlands</a>,
+          <a href="?lang=pt" hreflang="pt" lang="pt" data-demo-lang="pt">português</a> or
+          <a href="?lang=sv" hreflang="sv" lang="sv" data-demo-lang="sv">svenska</a>.
+        </p>
+        <p class="motion-note">Your system asks for reduced motion, so the button stays hidden: the library never runs the simulation for you.</p>
+      </div>
+    </section>
+
+    <section id="install">
+      <div class="wrap">
+        <h2>Three lines</h2>
+        <p class="section-intro">The stylesheet, the script with <code>defer</code> and a hidden button. The script shows the button only when the visitor's browser can run the simulation and nobody asked for less motion.</p>
+        <pre><code>&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.0/dist/agent-build.css" integrity="sha384-E0ogbToiARWkK9fsLJBkgyhz6eSASeMjaDa7ToMGpRRm2OrwzNZjMO7XNNnucfVE" crossorigin="anonymous"&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.0/dist/agent-build.js" integrity="sha384-rD4o+VrOYbVtwba0/RL5I/N908uOEbQ/siVmjVIu7stmtJXvvecKkRvyxuYkTRw2" crossorigin="anonymous" defer&gt;&lt;/script&gt;
+&lt;button data-agent-build hidden&gt;&lt;/button&gt;</code></pre>
+        <p class="section-intro">Or install it with <code>pnpm add @magnoscg/agent-build</code> and import <code>@magnoscg/agent-build</code> and <code>@magnoscg/agent-build/agent-build.css</code> from your bundle.</p>
+      </div>
+    </section>
+
+    <section id="why">
+      <div class="wrap">
+        <h2>Fun, and honest about it</h2>
+        <div class="grid">
+          <article class="card">
+            <h3>Says what it is</h3>
+            <p>The HUD and the screen reader announcement open with “Simulation” in English, Spanish, French, German, Italian, Dutch and Swedish.</p>
+          </article>
+          <article class="card">
+            <h3>Never rewrites content</h3>
+            <p>Blocks are hidden with <code>visibility</code>, so the layout never moves, and come back with Web Animations. Its own layers are gone when it ends.</p>
+          </article>
+          <article class="card">
+            <h3>Strict CSP, Trusted Types</h3>
+            <p>No inline styles, no <code>innerHTML</code>, no <code>eval</code>. This very page runs it with <code>style-src 'self'</code> and Trusted Types enforced.</p>
+          </article>
+          <article class="card">
+            <h3>Respects reduced motion</h3>
+            <p>Under <code>prefers-reduced-motion</code> the button never appears and <code>AgentBuild.start()</code> refuses to run.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="how">
+      <div class="wrap split">
+        <figure>
+          <img src="demo/wireframe.svg" alt="A wireframe of a web page with a selection box, its size and an agent cursor tagged layout-04" width="560" height="360">
+          <figcaption>A frame shows its box first; the blocks inside it come later.</figcaption>
+        </figure>
+        <div>
+          <h2>How it picks the blocks</h2>
+          <ol class="steps">
+            <li><strong>Frames</strong> are <code>header</code>, <code>footer</code>, <code>section</code>, <code>article</code>, <code>aside</code> and anything that paints a background, a shadow or a border.</li>
+            <li><strong>Blocks</strong> are headings, paragraphs, list items, media, tables, links, buttons and form controls, plus any loose text.</li>
+            <li>A block keeps everything inside it. A frame is looked inside, so its parts get built one by one.</li>
+            <li>A run builds for about twenty seconds; then the rest of the page appears at once.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section id="options">
+      <div class="wrap">
+        <h2>Options</h2>
+        <p class="section-intro">Set them as data attributes on the button, or pass them to <code>AgentBuild.start()</code>, which wins over the attributes.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th scope="col">Attribute</th><th scope="col">Option</th><th scope="col">Default</th><th scope="col">What it does</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>data-agent-pace</code></td><td><code>pace</code></td><td><code>1</code></td><td>Multiplies every duration, from 0.25 to 4. 2 is twice as slow.</td></tr>
+              <tr><td><code>data-agent-count</code></td><td><code>count</code></td><td>20, or 14 on narrow screens</td><td>How many agents, from 1 to 40.</td></tr>
+              <tr><td><code>data-agent-accent</code></td><td><code>accent</code></td><td><code>#7C6BFF</code></td><td>Any CSS colour for boxes, guides and the progress bar.</td></tr>
+              <tr><td><code>data-agent-hub</code></td><td><code>hub</code></td><td>Four blocks, inline SVG</td><td>URL of the icon the agents fly out of.</td></tr>
+              <tr><td><code>data-agent-frames</code></td><td><code>frames</code></td><td><code>header, footer, section, article, aside</code></td><td>Selector for boxes revealed before their content.</td></tr>
+              <tr><td><code>data-agent-atoms</code></td><td><code>atoms</code></td><td>Headings, text, media, controls</td><td>Selector for blocks revealed whole.</td></tr>
+              <tr><td><code>data-agent-pop</code></td><td><code>pop</code></td><td>Media and controls</td><td>Selector for the blocks that fade in instead of being typed.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="api">
+      <div class="wrap">
+        <h2>API and events</h2>
+        <pre><code>AgentBuild.start({ pace: 0.5, count: 8 }); // false when it cannot run
+AgentBuild.stop();
+document.addEventListener('agentbuild:end', (event) =&gt; {
+  console.log(event.detail); // { skipped, built, total, seconds }
+});</code></pre>
+        <div class="cta-row">
+          <button class="btn" type="button" data-demo-run='{"pace":0.5}' hidden>Run twice as fast</button>
+          <button class="btn" type="button" data-demo-run='{"count":6,"accent":"#FF9F0A"}' hidden>Six agents in orange</button>
+        </div>
+        <h3 class="log-title">Event log</h3>
+        <ol class="log" id="event-log">
+          <li class="log-empty">No events yet. Run the simulation.</li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>Inspired by <a href="https://califa.github.io/swarm-site/">swarm-site</a> and a video by <a href="https://x.com/EHuanglu">@EHuanglu</a> on X. No code was taken from either: this implementation is original.</p>
+      <p>MIT License · © 2026 Oscar Canton · <a href="https://github.com/magnoscg/agent-build">github.com/magnoscg/agent-build</a></p>
+    </div>
+  </footer>
+</body>
+</html>

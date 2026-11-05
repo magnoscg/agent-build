@@ -1,0 +1,72 @@
+{
+  "name": "@magnoscg/agent-build",
+  "version": "1.0.0",
+  "description": "A simulated swarm of AI agents rebuilds your page, block by block. Vanilla, dependency-free and strict-CSP friendly.",
+  "keywords": [
+    "animation",
+    "ai-agents",
+    "simulation",
+    "easter-egg",
+    "web-animations",
+    "vanilla-js",
+    "csp",
+    "trusted-types"
+  ],
+  "homepage": "https://magnoscg.github.io/agent-build/",
+  "bugs": "https://github.com/magnoscg/agent-build/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/magnoscg/agent-build.git"
+  },
+  "license": "MIT",
+  "author": "Oscar Canton (https://github.com/magnoscg)",
+  "type": "module",
+  "main": "./dist/agent-build.mjs",
+  "types": "./dist/types/index.d.ts",
+  "style": "./dist/agent-build.css",
+  "jsdelivr": "./dist/agent-build.min.js",
+  "unpkg": "./dist/agent-build.min.js",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/agent-build.mjs"
+    },
+    "./auto": {
+      "types": "./dist/types/auto.d.ts",
+      "default": "./dist/auto.mjs"
+    },
+    "./agent-build.css": "./dist/agent-build.css",
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
+  },
+  "sideEffects": [
+    "./dist/agent-build.js",
+    "./dist/agent-build.min.js",
+    "./dist/auto.mjs",
+    "*.css"
+  ],
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "pnpm test:unit",
+    "test:unit": "node --test \"test/unit/*.test.mjs\"",
+    "test:dist": "node --test \"test/dist/*.test.mjs\"",
+    "test:release": "node --test \"test/release/*.test.mjs\"",
+    "smoke": "pnpm build && node --test scripts/smoke.mjs",
+    "demo": "pnpm build && node scripts/serve.mjs",
+    "sri": "pnpm build && node scripts/sri.mjs",
+    "release:prepare": "node scripts/release.mjs prepare"
+  },
+  "packageManager": "pnpm@11.18.0",
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "playwright-core": "1.64.1",
+    "typescript": "7.0.2"
+  }
+}

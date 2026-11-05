@@ -1,0 +1,16 @@
+# agent-build
+
+> A browser library: one button hides a web page and a simulated swarm of AI agent cursors rebuilds it block by block, with selection boxes, sizes, guides, rulers and a HUD that says it is a simulation. Vanilla JavaScript and CSS, no runtime dependencies, works under a strict Content Security Policy with Trusted Types. npm package `@magnoscg/agent-build`, MIT.
+
+Usage: load `agent-build.css` and `agent-build.js` (deferred) and add `<button data-agent-build hidden></button>`. Options are `data-agent-*` attributes or `start()` options: `pace`, `count`, `accent`, `hub`, `frames`, `atoms`, `pop`. API on `window.AgentBuild` and as ES module exports: `start(options)`, `stop()`, `isRunning()`, `mount(root)`, `addLocale(tag, texts)`, `version`, plus `defineElement()` in the module. Events `agentbuild:start` and `agentbuild:end` on `document`. In server-rendered apps, give the button its own text and call `mount()` after hydration. It never runs under reduced motion and always says "Simulation", in eight shipped languages or any added with `addLocale()`.
+
+## Docs
+
+- [README](https://github.com/magnoscg/agent-build/blob/HEAD/README.md): install, framework recipes, options, API, events, languages, accessibility, security
+- [AGENTS.md](https://github.com/magnoscg/agent-build/blob/HEAD/AGENTS.md): repository map, commands, the promises every change keeps, how to add a language or an option
+- [CONTRIBUTING.md](https://github.com/magnoscg/agent-build/blob/HEAD/CONTRIBUTING.md): pull requests and releases
+
+## Optional
+
+- [Changelog](https://github.com/magnoscg/agent-build/blob/HEAD/CHANGELOG.md)
+- [Live demo](https://magnoscg.github.io/agent-build/)

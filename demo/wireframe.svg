@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 360" width="560" height="360">
+  <rect width="560" height="360" rx="14" fill="#14141B"/>
+  <path d="M14 0h532a14 14 0 0 1 14 14v22H0V14A14 14 0 0 1 14 0z" fill="#1C1C26"/>
+  <circle cx="22" cy="18" r="5" fill="#FF5F57"/>
+  <circle cx="40" cy="18" r="5" fill="#FEBC2E"/>
+  <circle cx="58" cy="18" r="5" fill="#28C840"/>
+  <rect x="0" y="36" width="560" height="12" fill="#101016"/>
+  <rect x="0" y="36" width="12" height="324" fill="#101016"/>
+  <path d="M112 36v6M212 36v6M312 36v6M412 36v6M512 36v6" stroke="#3A3A48" stroke-width="1"/>
+  <path d="M40 48v312M520 48v312" stroke="#FF6A3D" stroke-opacity="0.55" stroke-width="1"/>
+
+  <rect x="40" y="72" width="250" height="24" rx="4" fill="#2C2C3A"/>
+  <rect x="40" y="108" width="380" height="10" rx="3" fill="#24242F"/>
+  <rect x="40" y="126" width="330" height="10" rx="3" fill="#24242F"/>
+
+  <rect x="40" y="164" width="226" height="148" rx="10" fill="#1E1E28"/>
+  <rect x="60" y="184" width="120" height="14" rx="3" fill="#2C2C3A"/>
+  <rect x="60" y="208" width="180" height="8" rx="3" fill="#24242F"/>
+  <rect x="60" y="224" width="160" height="8" rx="3" fill="#24242F"/>
+
+  <rect x="294" y="164" width="226" height="148" rx="10" fill="#7C6BFF" fill-opacity="0.08" stroke="#7C6BFF" stroke-width="1.5"/>
+  <g fill="#FFFFFF" stroke="#7C6BFF" stroke-width="1">
+    <rect x="291" y="161" width="6" height="6"/>
+    <rect x="517" y="161" width="6" height="6"/>
+    <rect x="291" y="309" width="6" height="6"/>
+    <rect x="517" y="309" width="6" height="6"/>
+  </g>
+  <rect x="294" y="144" width="50" height="14" rx="3" fill="#7C6BFF"/>
+  <text x="300" y="154.5" fill="#FFFFFF" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9" font-weight="600" letter-spacing="0.6">FRAME</text>
+  <rect x="370" y="322" width="74" height="15" rx="3" fill="#7C6BFF"/>
+  <text x="377" y="332.5" fill="#FFFFFF" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9" font-weight="600">226 × 148</text>
+
+  <path d="M462 236v13l3.6-3.3 2.4 5.3 2.2-1-2.4-5.2h5.1z" fill="#30D158" stroke="#08080B" stroke-width="1" stroke-linejoin="round"/>
+  <rect x="472" y="250" width="62" height="16" rx="4" fill="#30D158"/>
+  <text x="478" y="261.5" fill="#08080B" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" font-weight="600">layout-04</text>
+</svg>

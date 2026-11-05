@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en" class="wf-active">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; object-src 'none'; base-uri 'none'; require-trusted-types-for 'script'; trusted-types 'none'">
+  <title>A page with rules of its own</title>
+  <link rel="icon" href="../../demo/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="page-rules.css">
+  <link rel="stylesheet" href="../../dist/agent-build.css">
+  <script src="page-rules.js" defer></script>
+  <script src="../../dist/agent-build.js" defer></script>
+</head>
+<body>
+  <section class="reveal" id="reveal">
+    <h2>Revealed on start</h2>
+    <p>A scroll-reveal section the page settles in its agentbuild:start listener.</p>
+  </section>
+  <header class="top" id="top">
+    <nav>
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li class="menu">Products <ul class="dropdown" id="dropdown"><li><a href="#">Hidden item</a></li></ul></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <h1 id="webfont">Shown by a web-font loader rule</h1>
+    <form>
+      <label>Email <input type="email"></label>
+      <p class="error" id="error">Required</p>
+    </form>
+    <img class="dim" id="dim" src="../../demo/icon.svg" alt="" width="64" height="64">
+    <p>More text so the page scrolls.</p>
+    <div class="spacer"></div>
+    <p>The end.</p>
+  </main>
+  <button class="chat" id="chat" type="button">Chat</button>
+</body>
+</html>

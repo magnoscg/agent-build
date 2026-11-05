@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types 'none'">
+  <title>A page the library has never seen</title>
+  <link rel="icon" href="../../demo/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="generic.css">
+  <link rel="stylesheet" href="../../dist/agent-build.css">
+  <!-- Loaded twice on purpose: the second copy must reuse the first. -->
+  <script src="../../dist/agent-build.js" defer></script>
+  <script src="../../dist/agent-build.js" defer></script>
+</head>
+<body>
+  <div id="app">
+    <div class="topbar">
+      <div class="logo">Acme</div>
+      <div class="links"><span>Pricing</span> <span>Blog</span> <a href="#">Sign in</a></div>
+    </div>
+    <div class="hero">
+      <div class="title">Ship faster with less</div>
+      <div class="subtitle">Loose text in a div, with <strong>bold</strong> and <em>emphasis</em>.</div>
+      <button class="cta" data-agent-build data-agent-count="3" data-agent-accent="#FF9F0A" hidden>Build it</button>
+    </div>
+    <div class="cards">
+      <a class="card" href="#"><img src="../../demo/icon.svg" alt="" width="40" height="40"><h3>A card link</h3><p>It wraps blocks.</p></a>
+      <div class="card"><div class="card-title">A plain div card</div><small>Painted, so it is a frame.</small></div>
+    </div>
+    <table>
+      <tr><th>Plan</th><td>Pro</td></tr>
+    </table>
+    <details open><summary>Details</summary><div>Inside the details.</div></details>
+    <dl><dt>Term</dt><dd>Definition</dd></dl>
+    <blockquote>A quote.</blockquote>
+    <form><label>Email <input type="email"></label> <select><option>One</option></select></form>
+    <custom-thing>Light DOM text in a custom element.</custom-thing>
+    <div>Mixed <p>paragraph</p> and tail text.</div>
+    <div class="spacer"></div>
+    <!-- Far below the fold, lazy and without dimensions: it is 0×0 until it
+         loads, which on a real network may be in the middle of a run. -->
+    <img class="late" src="../../demo/wireframe.svg" alt="A late image" loading="lazy">
+  </div>
+</body>
+</html>

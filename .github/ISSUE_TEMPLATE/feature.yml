@@ -1,0 +1,22 @@
+name: Feature request
+description: An idea for agent-build.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What would it let you do?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: How could it work?
+      description: An option, an event, a change in what the agents do. Rough ideas are fine.
+  - type: checkboxes
+    id: promises
+    attributes:
+      label: The library's promises
+      options:
+        - label: It still says it is a simulation, never runs under reduced motion, and needs no HTML strings or inline styles.
+          required: true

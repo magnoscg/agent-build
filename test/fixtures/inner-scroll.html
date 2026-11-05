@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; object-src 'none'; base-uri 'none'; require-trusted-types-for 'script'; trusted-types 'none'">
+  <title>An app shell that scrolls inside</title>
+  <link rel="icon" href="../../demo/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="inner-scroll.css">
+  <link rel="stylesheet" href="../../dist/agent-build.css">
+  <script src="../../dist/agent-build.js" defer></script>
+</head>
+<body>
+  <div id="app">
+    <header><h1>Dashboard</h1></header>
+    <section><h2>In view</h2><p>Built by the agents.</p></section>
+    <section class="far"><h2>Far below</h2><p>Shown as it is: the document itself does not scroll.</p></section>
+  </div>
+</body>
+</html>

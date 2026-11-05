@@ -1,0 +1,7 @@
+/* A positioned body with margins: the work layer must still line up. */
+body {
+  position: relative;
+  margin: 140px 0 0 90px;
+  font: 16px/1.5 system-ui, sans-serif;
+}
+p { width: 320px; margin: 40px 0 0 30px; }
