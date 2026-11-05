@@ -2,7 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { internals, h, SVG, PAINTED, defaultClassifier, layersOf } from './helpers.mjs';
 
-const { selectLayers, planLayers, columnEdges, tagOf, isTransparent, paintsBox, hasOwnText, normalizeOptions } = internals;
+const {
+  selectLayers, planLayers, columnEdges, tagOf, isTransparent, paintsBox, hasOwnText, isMediaOnly, normalizeOptions,
+} = internals;
 
 const describe = (layers) => layers.map((layer) => `${layer.kind}:${layer.element.localName}`);
 
@@ -28,6 +30,24 @@ test('a link that wraps blocks is a frame, like a card', () => {
 
   assert.equal(classify(h('a', {}, h('img'), h('h3', {}, 'Post'))), 'frame');
   assert.equal(classify(h('a', {}, h('span', {}, 'Icon'), 'Docs')), 'type');
+});
+
+test('a block that holds only media is an image that fades in', () => {
+  const classify = defaultClassifier();
+
+  assert.equal(classify(h('a', {}, h('img'))), 'pop');
+  assert.equal(classify(h('a', {}, ' ', h('picture', {}, h('img')), ' ')), 'pop');
+  assert.equal(classify(h('a', {}, h('svg', { ns: SVG }))), 'pop');
+  assert.equal(classify(h('li', {}, h('img'))), 'pop');
+  assert.equal(classify(h('p', {}, h('img'), 'Caption')), 'type');
+});
+
+test('only blocks without text and with media count as media', () => {
+  assert.equal(isMediaOnly(h('a', {}, h('img'))), true);
+  assert.equal(isMediaOnly(h('div', {}, h('span', {}, h('video')))), true);
+  assert.equal(isMediaOnly(h('a', {}, h('img'), h('span', {}, 'Download'))), false);
+  assert.equal(isMediaOnly(h('a', {}, '')), false);
+  assert.equal(isMediaOnly(h('img')), false);
 });
 
 test('loose text is typed, or makes a frame when blocks sit next to it', () => {
@@ -88,7 +108,7 @@ test('an atom keeps everything inside it, so nested matches are dropped', () => 
     h('ul', {}, h('li', {}, h('a', {}, h('svg', { ns: SVG })))),
     h('figure', {}, h('img'), h('figcaption', {}, 'Caption')));
 
-  assert.deepEqual(describe(layersOf(page)), ['type:p', 'type:li', 'pop:figure']);
+  assert.deepEqual(describe(layersOf(page)), ['type:p', 'pop:li', 'pop:figure']);
 });
 
 test('frames are looked inside, including frames in frames', () => {
@@ -191,15 +211,20 @@ test('at most four column guides, at least 24 px apart', () => {
 });
 
 test('the box label names what is being built', () => {
-  assert.equal(tagOf('section', 'frame', false), 'frame');
-  assert.equal(tagOf('h2', 'type', false), 'h2');
-  assert.equal(tagOf('a', 'type', false), 'link');
-  assert.equal(tagOf('a', 'pop', true), 'button');
-  assert.equal(tagOf('div', 'pop', true), 'button');
-  assert.equal(tagOf('figure', 'pop', false), 'img');
-  assert.equal(tagOf('picture', 'pop', false), 'img');
-  assert.equal(tagOf('span', 'type', false), 'text');
-  assert.equal(tagOf('video-player', 'pop', false), 'block');
+  assert.equal(tagOf('section', 'frame', false, false), 'frame');
+  assert.equal(tagOf('h1', 'type', false, false), 'h1');
+  assert.equal(tagOf('h2', 'type', false, false), 'h2');
+  assert.equal(tagOf('a', 'type', false, false), 'link');
+  assert.equal(tagOf('a', 'pop', true, false), 'button');
+  assert.equal(tagOf('div', 'pop', true, false), 'button');
+  assert.equal(tagOf('button', 'pop', false, true), 'button');
+  assert.equal(tagOf('img', 'pop', false, false), 'img');
+  assert.equal(tagOf('figure', 'pop', false, false), 'img');
+  assert.equal(tagOf('picture', 'pop', false, false), 'img');
+  assert.equal(tagOf('a', 'pop', false, true), 'img');
+  assert.equal(tagOf('li', 'pop', false, true), 'img');
+  assert.equal(tagOf('span', 'type', false, false), 'text');
+  assert.equal(tagOf('video-player', 'pop', false, false), 'block');
 });
 
 // MARK: - Painting

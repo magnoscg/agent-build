@@ -17,7 +17,7 @@ Content Security Policy and Trusted Types.
 
 ```html
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.0/dist/agent-build.css" integrity="sha384-crlu5HFBkzAGiZJnrNzC+LIuus1TWtFBxHf2ZZPAdlocNAzB9iqPdp2Xao/q0q36" crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.0/dist/agent-build.js" integrity="sha384-SqxnmGfwK6lEQPKFALrqLaPjVbfs7jO9f7j6+7ZHt39RjbB8WTk7GKhJO/2rxw12" crossorigin="anonymous" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.0/dist/agent-build.js" integrity="sha384-QEspZHO+uaBwIqiLXN1S5HLqHANbXZEw0IPv6bRg6Aft+R/aoVBjqmmeoKeb/Ma8" crossorigin="anonymous" defer></script>
 <button data-agent-build hidden></button>
 ```
 
@@ -136,7 +136,9 @@ Every element under `<body>` is one of these, in document order:
 - An **atom** matches `atoms`, or holds loose text, or is a component with a
   shadow root. It is revealed with everything inside it, which is how nested
   matches are deduplicated: a link inside a paragraph is part of the
-  paragraph. A link that wraps blocks, the usual card, counts as a frame.
+  paragraph. A link that wraps blocks, the usual card, counts as a frame. A
+  block that holds media and no text, like a link around a screenshot or a
+  store badge, is labelled as an image and fades in.
 - Anything else is a wrapper the walk looks inside, and anything under 2 px is
   not a layer, though what it holds may be.
 

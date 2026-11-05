@@ -29,6 +29,9 @@ export function h(tag, props = {}, ...content) {
     shadowRoot: props.shadow ? {} : null,
     childNodes,
     children: childNodes.filter((child) => child.nodeType === 1),
+    get textContent() {
+      return childNodes.map((child) => (child.nodeType === 3 ? child.nodeValue : child.textContent)).join('');
+    },
     box: props.box,
     style: props.style,
     matches: (selector) => matchesList(element, selector),
