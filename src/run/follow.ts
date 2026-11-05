@@ -4,10 +4,10 @@ import type { Run } from './types.ts';
 /* The page follows the topmost layer at work and keeps it about a third down
    the screen, until the visitor scrolls on their own. */
 export function follow(run: Run) {
-  if (!run.running) {
+  if (!run.running || !run.following) {
     return;
   }
-  if (run.following && !run.paused) {
+  if (!run.paused) {
     let top = Infinity;
     for (const layer of run.active) {
       top = Math.min(top, layer.y);

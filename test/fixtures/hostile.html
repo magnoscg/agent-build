@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; object-src 'none'; base-uri 'none'; require-trusted-types-for 'script'; trusted-types 'none'">
+  <title>A page that makes overlays hard</title>
+  <link rel="icon" href="../../demo/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="hostile.css">
+  <link rel="stylesheet" href="../../dist/agent-build.css">
+  <script src="hostile.js" defer></script>
+  <script src="../../dist/agent-build.js" defer></script>
+</head>
+<body>
+  <section>
+    <h2>Snapped section one</h2>
+    <p><i class="icon"></i> An icon-font glyph drawn by ::before.</p>
+    <span class="star"></span>
+    <math display="block"><mi>e</mi><mo>=</mo><mi>m</mi><msup><mi>c</mi><mn>2</mn></msup></math>
+  </section>
+  <section>
+    <h2>Snapped section two</h2>
+    <audio controls></audio>
+    <progress value="40" max="100"></progress>
+    <meter value="0.6"></meter>
+    <closed-widget></closed-widget>
+  </section>
+  <section>
+    <h2>Snapped section three</h2>
+    <p>The last one.</p>
+  </section>
+</body>
+</html>

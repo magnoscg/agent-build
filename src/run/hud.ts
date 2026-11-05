@@ -1,6 +1,6 @@
 import { el, makeDots } from '../dom.ts';
 import { EASE, play, setPaused } from './animate.ts';
-import { layerElement } from './stage.ts';
+import { float, layerElement } from './stage.ts';
 import type { Hud, Run } from './types.ts';
 
 export function makeHud(run: Run, onFinish: () => void): Hud {
@@ -28,7 +28,7 @@ export function makeHud(run: Run, onFinish: () => void): Hud {
   pause.addEventListener('click', () => togglePause(run));
   stop.addEventListener('click', onFinish);
   hud.append(makeDots('agent-build-hud-dots'), info, bar, pause, stop);
-  document.body.append(hud);
+  float(hud);
   play(run, hud, [
     { opacity: 0, transform: 'translate(-50%, 12px)' },
     { opacity: 1, transform: 'translate(-50%, 0)' },

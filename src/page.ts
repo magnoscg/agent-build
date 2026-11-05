@@ -1,5 +1,10 @@
 import type { Env } from './options.ts';
 
+/* The run's state lives in attributes of its own, never in the page's
+   classes, so a framework that rewrites class attributes cannot undo it. */
+export const RUN = 'data-agent-build-run';
+export const REVEAL = 'data-agent-build-reveal';
+
 export const triggers = () => document.querySelectorAll<HTMLElement>('[data-agent-build]');
 
 export const supported = () => typeof Element.prototype.animate === 'function'

@@ -31,11 +31,10 @@ test('no options give the defaults', () => {
 
 test('the defaults name generic boxes and blocks, nothing from one site', () => {
   assert.equal(DEFAULTS.frames, 'header, footer, section, article, aside');
-  for (const tag of ['h1', 'h2', 'h3', 'p', 'li', 'img', 'figure', 'a', 'button']) {
+  for (const tag of ['h1', 'h2', 'h3', 'p', 'li', 'img', 'figure', 'a', 'button', 'math', 'audio', 'progress', 'iframe']) {
     assert.ok(DEFAULTS.atoms.split(', ').includes(tag), `${tag} is an atom`);
   }
   assert.doesNotMatch(`${DEFAULTS.frames} ${DEFAULTS.atoms} ${DEFAULTS.pop}`, /reveal|work-|xp-|hero/);
-  assert.equal(DEFAULTS.hub, '');
 });
 
 test('narrow screens get fewer agents unless a count is given', () => {

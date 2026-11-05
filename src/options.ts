@@ -1,4 +1,5 @@
 import { clamp, toNumber } from './util.ts';
+import { BUTTONISH, CONTROL_TAGS, FRAME_TAGS, MEDIA_TAGS, TEXT_TAGS } from './vocabulary.ts';
 
 export interface Options {
   frames?: string;
@@ -37,21 +38,25 @@ export type RawOptions = { [Key in keyof Options]?: unknown };
    its content comes later. An atom reveals everything inside it at once: pop
    atoms fade in, the rest are typed. */
 export const DEFAULTS = Object.freeze({
-  frames: 'header, footer, section, article, aside',
-  atoms: [
-    'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'li', 'dt', 'dd', 'blockquote', 'pre',
-    'figure', 'picture', 'img', 'svg', 'video', 'canvas', 'iframe', 'table',
-    'button', 'input', 'select', 'textarea', 'label', 'a',
-  ].join(', '),
-  pop: 'figure, picture, img, svg, video, canvas, iframe, button, input, select, textarea, '
-    + '.button, .btn, [role="button"], [data-agent-build]',
-  hub: '',
+  frames: FRAME_TAGS.join(', '),
+  atoms: [...TEXT_TAGS, 'figure', ...MEDIA_TAGS, ...CONTROL_TAGS, 'a'].join(', '),
+  pop: ['figure', ...MEDIA_TAGS, ...CONTROL_TAGS, BUTTONISH].join(', '),
   pace: 1,
-  accent: '',
 });
 
 export const AGENTS = Object.freeze({ wide: 20, narrow: 14, breakpoint: 720 });
-export const LIMITS = Object.freeze({ pace: [0.25, 4], count: [1, 40], layers: 160, settle: 1000 } as const);
+
+/* A run builds for about twenty seconds, pauses aside, whatever the pace and
+   count: then the rest of the page appears at once. The layer cap bounds the
+   walk on huge pages, and settle bounds the wait for fonts and transitions
+   before measuring. */
+export const LIMITS = Object.freeze({
+  pace: [0.25, 4],
+  count: [1, 40],
+  layers: 240,
+  seconds: 20,
+  settle: 1500,
+} as const);
 
 export const OPTION_KEYS = ['frames', 'atoms', 'pop', 'hub', 'pace', 'count', 'accent'] as const;
 

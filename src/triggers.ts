@@ -21,11 +21,6 @@ export function setUpTriggers() {
     if (!named) {
       trigger.append(makeDots(), text.cta);
     }
-    /* A trigger without classes of its own takes the default look through a
-       class, because a run adds and removes classes on what it reveals. */
-    if (!(trigger.getAttribute('class') ?? '').trim()) {
-      trigger.className = 'agent-build-button';
-    }
     const accent = String(trigger.dataset.agentAccent ?? '').trim();
     if (accent && env.isColor(accent)) {
       trigger.style.setProperty('--agent-accent', accent);

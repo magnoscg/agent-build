@@ -2,6 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
+import { OPTION_KEYS } from '../../src/options.ts';
 import { VERSION } from '../../src/version.ts';
 
 const read = (path) => readFile(new URL(`../../${path}`, import.meta.url), 'utf8');
@@ -113,6 +114,15 @@ test('every workflow pins its actions to a full commit SHA', async () => {
       assert.match(action, /^[\w.-]+\/[\w.-]+@[0-9a-f]{40}$/, `${name}: ${action}`);
     }
   }
+});
+
+test('the README documents every option and no other', () => {
+  const documented = [...readme.matchAll(/^\| `data-agent-([a-z]+)` \| `([a-z]+)` \|/gm)]
+    .map(([, attribute, option]) => {
+      assert.equal(attribute, option, `data-agent-${attribute} pairs with ${option}`);
+      return option;
+    });
+  assert.deepEqual(documented.sort(), [...OPTION_KEYS].sort());
 });
 
 test('the credits are there', () => {

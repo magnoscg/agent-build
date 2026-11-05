@@ -91,10 +91,13 @@ export function defaultClassifier(config = normalizeOptions({}, {})) {
   return makeClassifier(config, (element) => element.style);
 }
 
-export function layersOf(root, classify = defaultClassifier()) {
+export function select(root, { classify = defaultClassifier(), limit } = {}) {
   return selectLayers(root, {
     childrenOf: (element) => element.children,
     classify,
     measure: (element) => element.box || { x: 0, y: 0, w: 100, h: 20 },
+    limit,
   });
 }
+
+export const layersOf = (root, options) => select(root, options).layers;

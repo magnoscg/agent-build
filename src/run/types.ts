@@ -18,6 +18,11 @@ export interface Hud {
   live: HTMLElement;
 }
 
+export interface Gate {
+  promise: Promise<void>;
+  open: () => void;
+}
+
 export interface Run {
   config: Config;
   text: Texts;
@@ -32,8 +37,11 @@ export interface Run {
   active: Set<Layer>;
   listeners: AbortController;
   layers: Layer[];
-  shown: Layer[];
   queue: Layer[];
+  marked: Element[];
+  gates: Map<Layer, Gate>;
+  opened: Set<Layer>;
+  restIn: Map<Layer, Element[]>;
   built: number;
   frame: number;
   startedAt: number;
