@@ -7,6 +7,8 @@ notes of that version.
 
 ## Unreleased
 
+## 1.0.0 - 2026-11-05
+
 ### Added
 
 - A swarm of agent cursors that hides the page and rebuilds it block by block,
