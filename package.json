@@ -1,0 +1,49 @@
+{
+  "name": "@magnoscg/agent-build",
+  "version": "1.0.0",
+  "description": "A simulated swarm of AI agents rebuilds your page, block by block. Vanilla, dependency-free and strict-CSP friendly.",
+  "keywords": [
+    "animation",
+    "ai-agents",
+    "simulation",
+    "easter-egg",
+    "web-animations",
+    "vanilla-js",
+    "csp",
+    "trusted-types"
+  ],
+  "homepage": "https://magnoscg.github.io/agent-build/",
+  "bugs": "https://github.com/magnoscg/agent-build/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/magnoscg/agent-build.git"
+  },
+  "license": "MIT",
+  "author": "Oscar Canton (https://github.com/magnoscg)",
+  "main": "dist/agent-build.js",
+  "style": "dist/agent-build.css",
+  "jsdelivr": "dist/agent-build.js",
+  "unpkg": "dist/agent-build.js",
+  "exports": {
+    ".": "./dist/agent-build.js",
+    "./agent-build.css": "./dist/agent-build.css",
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "smoke": "node --test scripts/smoke.mjs",
+    "demo": "node scripts/serve.mjs",
+    "sri": "node scripts/sri.mjs"
+  },
+  "packageManager": "pnpm@11.18.0",
+  "devDependencies": {
+    "playwright-core": "1.64.1"
+  }
+}

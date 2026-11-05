@@ -1,0 +1,213 @@
+# agent-build
+
+A simulated swarm of AI agents rebuilds your page, block by block.
+
+One button hides the page and a swarm of agent cursors (planner, ui, copy,
+layout, qa, a11y, perf, i18n) puts it back together, with selection boxes,
+sizes, layout guides, canvas rulers and a HUD that tells your visitors it is a
+simulation. Vanilla JavaScript and CSS, no dependencies, no build step. It
+works on any page without configuration, including pages with a strict
+Content Security Policy and Trusted Types.
+
+**[Live demo](https://magnoscg.github.io/agent-build/)**
+
+![The demo page halfway through a run: selection boxes with tags and sizes, agent cursors with role names, rulers, guides and the HUD](demo/screenshot.png)
+
+## Quick start
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.0/dist/agent-build.css" integrity="sha384-crlu5HFBkzAGiZJnrNzC+LIuus1TWtFBxHf2ZZPAdlocNAzB9iqPdp2Xao/q0q36" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.0/dist/agent-build.js" integrity="sha384-SqxnmGfwK6lEQPKFALrqLaPjVbfs7jO9f7j6+7ZHt39RjbB8WTk7GKhJO/2rxw12" crossorigin="anonymous" defer></script>
+<button data-agent-build hidden></button>
+```
+
+That is all. The script shows the button, labels it in the page's language,
+gives it a default look and runs the simulation on click. Put it wherever you
+like: the hero, the footer, an easter egg.
+
+The button ships `hidden` on purpose. It only appears when the script runs and
+the browser can play the simulation, and never for visitors who prefer reduced
+motion.
+
+The `integrity` hashes make the browser refuse anything but these exact
+files, so a compromised CDN cannot serve you something else. They change with
+every version: take the snippet from the README of the version you use.
+
+### Self-hosted or from npm
+
+The library is two files: copy `dist/agent-build.js` and
+`dist/agent-build.css` next to your site and link them, or install the
+package:
+
+```sh
+pnpm add @magnoscg/agent-build
+```
+
+```js
+import '@magnoscg/agent-build';
+import '@magnoscg/agent-build/agent-build.css';
+```
+
+Importing the script defines `window.AgentBuild` and wires the buttons on the
+page, like the `<script>` tag does. Outside a browser, during server-side
+rendering for instance, it does nothing and `start()` returns `false`.
+
+## Options
+
+Set them as data attributes on the button, or pass them to
+`AgentBuild.start()`, which wins over the attributes.
+
+| Attribute | Option | Default | What it does |
+|---|---|---|---|
+| `data-agent-pace` | `pace` | `1` | Multiplies every duration, from 0.25 to 4. `2` is twice as slow. |
+| `data-agent-count` | `count` | `20`, or `14` under 720 px | How many agents, from 1 to 40. |
+| `data-agent-accent` | `accent` | `#7C6BFF` | Any CSS colour, for boxes, guides and the progress bar. |
+| `data-agent-hub` | `hub` | Four blocks, inline SVG | URL of the icon the agents fly out of, usually your logo. |
+| `data-agent-frames` | `frames` | `header, footer, section, article, aside` | Selector for boxes: their box is revealed first, their content later. |
+| `data-agent-atoms` | `atoms` | Headings, `p`, `li`, `dt`, `dd`, `blockquote`, `pre`, media, `table`, links, buttons and form controls | Selector for blocks revealed whole. |
+| `data-agent-pop` | `pop` | Media, buttons, form controls, `.button`, `.btn`, `[role="button"]` | Selector for the blocks that fade in instead of being typed. |
+
+```html
+<button data-agent-build data-agent-pace="1.5" data-agent-count="12"
+        data-agent-accent="#0A84FF" data-agent-hub="/logo.svg" hidden></button>
+```
+
+A broken selector or colour falls back to the default with a console warning,
+and numbers are clamped, so a typo never breaks the page.
+
+### Styling
+
+- `--agent-accent` sets the accent colour from your CSS, on `:root` or on the
+  button. `--agent-mono` sets the monospace font of the labels and the HUD.
+- A trigger without classes of its own gets the class `agent-build-button`,
+  which carries the default look. Give the button your own classes and it is
+  yours to style. Add `agent-build-button` next to them to keep the default.
+- The five agent dots are available for your own button:
+  `<span class="agent-build-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>`.
+  They hop in a wave unless the visitor prefers reduced motion.
+
+## API
+
+```js
+AgentBuild.start(options) // true if a run started
+AgentBuild.stop()         // true if a run was stopped
+AgentBuild.isRunning()    // true while a run is in progress
+AgentBuild.version        // "1.0.0"
+```
+
+`start()` accepts the options above plus `trigger`, the element whose data
+attributes it reads and where focus returns at the end. Without one it reads
+the first `[data-agent-build]` on the page. It returns `false`, and does
+nothing, when a run is already in progress, the visitor prefers reduced
+motion, the browser lacks Web Animations, or the stylesheet is not loaded.
+
+Rendering your button later, from a framework? Call `AgentBuild.start()` from
+its click handler, and keep `data-agent-build` on it so the stylesheet hides
+it under reduced motion.
+
+### Events
+
+Both are dispatched on `document` and bubble to `window`.
+
+| Event | When | `event.detail` |
+|---|---|---|
+| `agentbuild:start` | Before anything is measured or hidden | `{ trigger }`, the element or `null` |
+| `agentbuild:end` | Once the page is back, however the run ended | `{ skipped, built, total, seconds }` |
+
+`agentbuild:start` is the place to put scroll-reveal effects in their final
+state, so the agents measure the page as it really looks:
+
+```js
+document.addEventListener('agentbuild:start', () => {
+  for (const element of document.querySelectorAll('[data-reveal]')) {
+    element.classList.add('is-revealed');
+  }
+});
+```
+
+## How it picks the blocks
+
+Every element under `<body>` is one of these, in document order:
+
+- A **frame** matches `frames`, or paints a box of its own (a background, a
+  shadow or a border all round), or holds loose text next to other blocks. Its
+  box is revealed first and it is looked inside, so its parts get built one by
+  one.
+- An **atom** matches `atoms`, or holds loose text, or is a component with a
+  shadow root. It is revealed with everything inside it, which is how nested
+  matches are deduplicated: a link inside a paragraph is part of the
+  paragraph. A link that wraps blocks, the usual card, counts as a frame.
+- Anything else is a wrapper the walk looks inside, and anything under 2 px is
+  not a layer, though what it holds may be.
+
+Up to 160 layers get built, about fifteen seconds. On longer pages the rest is
+shown from the start, so nothing waits hidden for minutes.
+
+## Accessibility
+
+- It says what it is. The HUD opens with the word for "Simulation", and the
+  screen reader announcements at the start and the end do too, in English,
+  Spanish, French, German, Italian, Dutch and Swedish. The language comes from
+  the nearest `lang` attribute; any other language gets English.
+- Under `prefers-reduced-motion: reduce` the button never appears,
+  `start()` refuses to run, and a run in progress stops if the preference
+  changes.
+- When a run starts, focus moves to the HUD's Pause button. Pause is a toggle
+  button with `aria-pressed`, Escape finishes at any time, and focus returns to
+  the trigger at the end.
+- It never rewrites content. It hides blocks with `visibility` and reveals
+  them with Web Animations, so the layout never shifts. Hidden content is
+  hidden from assistive technology too while the run lasts, which is why the
+  run is short, announced, and can be stopped at once.
+- The overlays (cursors, boxes, rulers) are `aria-hidden`. Only the HUD and
+  its two buttons are exposed.
+
+## Content Security Policy
+
+- **No inline styles.** Dynamic styles go through the CSSOM and Web
+  Animations, which `style-src` does not restrict, so `style-src 'self'` is
+  enough without `'unsafe-inline'`.
+- **No HTML strings.** Every node is built with `createElement`, never
+  `innerHTML`, and there is no `eval`. It runs with
+  `require-trusted-types-for 'script'` and no Trusted Types policy at all.
+- **CDN or self-hosted.** From jsDelivr, allow `https://cdn.jsdelivr.net` in
+  `script-src` and `style-src`. Self-hosted, `'self'` covers both.
+- **Images.** The default hub icon is inline SVG, so `img-src` never needs
+  `data:`. A `data-agent-hub` URL has to be allowed by your `img-src`.
+
+The demo page runs under `default-src 'self'; script-src 'self'; style-src
+'self'; img-src 'self'; require-trusted-types-for 'script'; trusted-types
+'none'`, and the browser smoke test fails on any CSP violation.
+
+## Browser support
+
+Current Chrome, Edge, Firefox and Safari, from 2021 on. Where Web Animations
+are missing, the button simply stays hidden. The automated smoke test runs in
+Chrome; Safari and Firefox are not tested automatically yet.
+
+Size: about 14 KB of JavaScript and 4 KB of CSS, gzipped. The files are
+readable source with comments, not minified.
+
+## Development
+
+```sh
+pnpm install   # playwright-core, only for the browser smoke test
+pnpm test      # node --test: layer selection, languages, options, guarantees
+pnpm smoke     # the real library in your installed Chrome, sandboxed
+pnpm demo      # the demo at http://127.0.0.1:4173/
+pnpm sri       # refresh the integrity hashes in this README after editing dist/
+```
+
+There is no build step: `dist/` is the source. CI runs `pnpm test` only; the
+smoke test needs Google Chrome installed and runs locally.
+
+## Credits
+
+Inspired by [swarm-site](https://califa.github.io/swarm-site/) and a video by
+[@EHuanglu](https://x.com/EHuanglu) on X. No code was taken from either:
+agent-build is an original implementation, first written for
+[ogamlabs.com](https://ogamlabs.com).
+
+## License
+
+[MIT](LICENSE) © 2026 Oscar Canton
