@@ -4,7 +4,7 @@
 (() => {
   'use strict';
 
-  const LANGUAGES = ['en', 'es', 'fr', 'de', 'it', 'nl', 'sv'];
+  const LANGUAGES = ['en', 'es', 'fr', 'de', 'it', 'nl', 'pt', 'sv'];
   const requested = new URLSearchParams(location.search).get('lang');
   const language = LANGUAGES.includes(requested) ? requested : 'en';
 

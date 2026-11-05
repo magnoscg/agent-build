@@ -40,6 +40,7 @@ test('named imports work under Node ESM and refuse to run outside a browser', as
   assert.equal(library.start(), false);
   assert.equal(library.stop(), false);
   assert.equal(library.isRunning(), false);
+  assert.throws(() => library.addLocale('xx', { kicker: 'Simulation' }), TypeError);
 });
 
 test('strict TypeScript consumers type-check against the declarations', async () => {

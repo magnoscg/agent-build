@@ -1,15 +1,15 @@
-import type { Texts } from './types.ts';
+import type { Locale } from './types.ts';
 
 export default {
   kicker: 'Simulation',
   label: 'Simulation: AI agents building the page',
   cta: 'Watch the agents build it',
-  agents: (count) => `${count} ${count === 1 ? 'agent' : 'agents'}`,
-  layers: (done, total) => `${done}/${total} layers`,
+  agents: { one: '{count} agent', other: '{count} agents' },
+  layers: '{done}/{total} layers',
   pause: 'Pause',
   resume: 'Resume',
   finish: 'Finish',
   started: 'Simulation running: a swarm of AI agents is building the page. Press Escape to finish.',
-  built: (seconds) => `Built in ${seconds} s · it was a simulation`,
+  built: 'Built in {seconds} s · it was a simulation',
   finished: 'Simulation finished. The page is complete.',
-} satisfies Texts;
+} satisfies Locale;

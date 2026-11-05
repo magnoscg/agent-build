@@ -1,6 +1,6 @@
 import { FADE_IN, FADE_OUT } from '../dom.ts';
 import { columnEdges, labelOf, type Layer, makeClassifier, type Rest, selectLayers } from '../layers.ts';
-import { LOCALES, resolveLanguage } from '../locales/index.ts';
+import { type Phrases, phrasesFor } from '../locales/index.ts';
 import {
   AGENTS, type Config, datasetOptions, LIMITS, mergeOptions, normalizeOptions, type StartOptions,
 } from '../options.ts';
@@ -8,7 +8,7 @@ import { cssLoaded, env, languageOf, REVEAL, RUN, supported, triggers } from '..
 import { ignoreAbort, play } from './animate.ts';
 import { work } from './build.ts';
 import { follow, listen } from './follow.ts';
-import { makeHud } from './hud.ts';
+import { announce, makeHud, makeLive } from './hud.ts';
 import { mark, releaseAll, showNow } from './reveal.ts';
 import { intro, makeGuide, makeRulers, makeStage } from './stage.ts';
 import type { Run } from './types.ts';
@@ -33,7 +33,8 @@ let current: Run | null = null;
 export const isRunning = () => current !== null;
 
 /* Options win over the data attributes of the pressed button or, without
-   one, of the first [data-agent-build] on the page. */
+   one, of the first [data-agent-build] on the page. Only a trigger that was
+   passed in is reported in agentbuild:start. */
 export function start(options?: StartOptions): boolean {
   if (typeof document === 'undefined' || current || !document.body || !supported()) {
     return false;
@@ -43,12 +44,11 @@ export function start(options?: StartOptions): boolean {
     return false;
   }
   const given: StartOptions = options && typeof options === 'object' ? options : {};
-  const trigger = given.trigger?.nodeType === 1
-    ? given.trigger
-    : document.querySelector<HTMLElement>('[data-agent-build]');
-  const config = normalizeOptions(mergeOptions(datasetOptions(trigger as HTMLElement | null), given),
+  const trigger = given.trigger?.nodeType === 1 ? given.trigger : null;
+  const source = trigger ?? document.querySelector<HTMLElement>('[data-agent-build]');
+  const config = normalizeOptions(mergeOptions(datasetOptions(source as HTMLElement | null), given),
     { narrow: innerWidth < AGENTS.breakpoint, ...env });
-  void begin(config, resolveLanguage(languageOf(trigger)), trigger);
+  void begin(config, phrasesFor(languageOf(source)), trigger);
   return true;
 }
 
@@ -66,14 +66,15 @@ function emit(type: string, detail: StartDetail | EndDetail) {
   document.dispatchEvent(new CustomEvent(`agentbuild:${type}`, { bubbles: true, detail }));
 }
 
-function createRun(config: Config, language: string, trigger: Element | null): Run {
+function createRun(config: Config, text: Phrases, trigger: Element | null): Run {
   return {
     config,
-    text: LOCALES[language],
-    decimal: new Intl.NumberFormat(language, { maximumFractionDigits: 1 }),
+    text,
     pace: BASE_PACE * config.pace,
     trigger,
     returnFocus: document.activeElement,
+    scroll: { x: scrollX, y: scrollY },
+    scrolledTo: 0,
     running: true,
     paused: false,
     following: true,
@@ -95,11 +96,12 @@ function createRun(config: Config, language: string, trigger: Element | null): R
     stage: null,
     ruler: null,
     ui: null,
+    live: null,
   };
 }
 
-async function begin(config: Config, language: string, trigger: Element | null) {
-  const run = createRun(config, language, trigger);
+async function begin(config: Config, text: Phrases, trigger: Element | null) {
+  const run = createRun(config, text, trigger);
   current = run;
 
   /* Fired before anything is measured, so a page can put its scroll-reveal
@@ -112,13 +114,17 @@ async function begin(config: Config, language: string, trigger: Element | null) 
   const root = document.documentElement;
   const end = () => finish(run, true);
   listen(run, end);
+  for (const leftover of document.querySelectorAll('.agent-build-hud, .agent-build-live')) {
+    leftover.remove();
+  }
+  run.live = makeLive(run);
   root.setAttribute(RUN, 'measuring');
   for (const element of triggers()) {
     element.setAttribute('aria-disabled', 'true');
   }
-  for (const hud of document.querySelectorAll('.agent-build-hud')) {
-    hud.remove();
-  }
+  /* Chrome skips the style update for scrollTo(0, 0), so the run's
+     scroll-behavior is applied first and the jump is instant. */
+  void getComputedStyle(root).scrollBehavior;
   window.scrollTo(0, 0);
   try {
     await settle();
@@ -214,10 +220,26 @@ function plan(run: Run, layers: Layer[], rest: Rest[]) {
   }
 }
 
+/* Focus goes back to where it was, or to the trigger that was pressed when
+   nothing had it, such as after a click in Safari. */
 function restoreFocus(run: Run) {
-  const target = [run.trigger, run.returnFocus].find((node): node is HTMLElement => node instanceof HTMLElement
-    && node !== document.body && node.isConnected);
-  target?.focus({ preventScroll: true });
+  for (const target of [run.returnFocus, run.trigger]) {
+    if ((target instanceof HTMLElement || target instanceof SVGElement) && target !== document.body
+      && target.isConnected) {
+      target.focus({ preventScroll: true });
+      if (document.activeElement === target) {
+        return;
+      }
+    }
+  }
+}
+
+/* Back to where the visitor was, unless they scrolled on their own. While the
+   run attribute is still on, a skip jumps there at once. */
+function restoreScroll(run: Run, skipped: boolean) {
+  if (run.following) {
+    window.scrollTo({ left: run.scroll.x, top: run.scroll.y, behavior: skipped ? 'auto' : 'smooth' });
+  }
 }
 
 function finish(run: Run, skipped: boolean) {
@@ -238,6 +260,7 @@ function finish(run: Run, skipped: boolean) {
   run.animations.clear();
   releaseAll(run);
 
+  restoreScroll(run, skipped);
   document.documentElement.removeAttribute(RUN);
   for (const element of run.marked) {
     element.removeAttribute(REVEAL);
@@ -253,26 +276,29 @@ function finish(run: Run, skipped: boolean) {
       layer.animate(FADE_OUT, { duration: 320 }).finished.then(remove, remove);
     }
   }
-  const { ui } = run;
+  const { ui, live } = run;
   if (ui) {
     if (ui.hud.contains(document.activeElement)) {
       restoreFocus(run);
     }
-    ui.live.textContent = run.text.finished;
     if (skipped) {
       ui.hud.remove();
-      setTimeout(() => ui.live.remove(), 3000);
     } else {
       ui.pause.remove();
       ui.stop.remove();
       ui.fill.style.transform = 'scaleX(1)';
-      ui.info.textContent = run.text.built(run.decimal.format(seconds));
+      ui.info.textContent = run.text.built(seconds);
       setTimeout(() => {
         const remove = () => ui.hud.remove();
         ui.hud.animate(FADE_OUT, { duration: 400 }).finished.then(remove, remove);
-        ui.live.remove();
       }, 2800);
     }
+  }
+  if (live) {
+    if (ui) {
+      announce(live, run.text.finished);
+    }
+    setTimeout(() => live.remove(), ui ? 3000 : 0);
   }
   emit('end', { skipped, built: run.built, total: run.layers.length, seconds });
 }
