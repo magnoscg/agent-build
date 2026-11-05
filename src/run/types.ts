@@ -1,5 +1,5 @@
 import type { Layer } from '../layers.ts';
-import type { Texts } from '../locales/index.ts';
+import type { Phrases } from '../locales/index.ts';
 import type { Config } from '../options.ts';
 
 export interface Agent {
@@ -15,7 +15,6 @@ export interface Hud {
   fill: HTMLElement;
   pause: HTMLButtonElement;
   stop: HTMLButtonElement;
-  live: HTMLElement;
 }
 
 export interface Gate {
@@ -25,11 +24,12 @@ export interface Gate {
 
 export interface Run {
   config: Config;
-  text: Texts;
-  decimal: Intl.NumberFormat;
+  text: Phrases;
   pace: number;
   trigger: Element | null;
   returnFocus: Element | null;
+  scroll: { x: number; y: number };
+  scrolledTo: number;
   running: boolean;
   paused: boolean;
   following: boolean;
@@ -51,4 +51,5 @@ export interface Run {
   stage: HTMLElement | null;
   ruler: HTMLElement | null;
   ui: Hud | null;
+  live: HTMLElement | null;
 }

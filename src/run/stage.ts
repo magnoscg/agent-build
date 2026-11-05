@@ -8,9 +8,11 @@ const HUES = 6;
 const RULER = 16;
 
 /* The script's own top-level nodes, which the stylesheet never hides, with
-   the accent when one was given. */
+   the accent when one was given. They are drawn in page coordinates, so they
+   are left-to-right whatever the page's direction. */
 export function layerElement<Tag extends keyof HTMLElementTagNameMap>(run: Run, tag: Tag, className: string) {
   const element = el(tag, `${className} agent-build-layer`);
+  element.dir = 'ltr';
   if (run.config.accent) {
     element.style.setProperty('--agent-accent', run.config.accent);
   }

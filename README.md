@@ -97,14 +97,15 @@ AgentBuild.start(options) // true if a run started
 AgentBuild.stop()         // true if a run was stopped
 AgentBuild.isRunning()    // true while a run is in progress
 AgentBuild.mount(root)    // shows the [data-agent-build] triggers in root (document by default)
+AgentBuild.addLocale(tag, texts) // adds or replaces a language, see Languages
 AgentBuild.version        // "1.0.0"
 ```
 
 The ES module exports the same functions, plus `defineElement()`, all typed.
 
 `start()` accepts the options above plus `trigger`, the element whose data
-attributes it reads and where focus returns at the end. Without one it reads
-the first `[data-agent-build]` on the page. It returns `false`, and does
+attributes and language it reads. Without one it reads the first
+`[data-agent-build]` on the page. It returns `false`, and does
 nothing, when a run is already in progress, the visitor prefers reduced
 motion, the browser lacks Web Animations or cascade layers, or the stylesheet
 is not loaded.
@@ -137,7 +138,7 @@ Both are dispatched on `document` and bubble to `window`.
 
 | Event | When | `event.detail` |
 |---|---|---|
-| `agentbuild:start` | Before anything is measured or hidden | `{ trigger }`, the element or `null` |
+| `agentbuild:start` | Before anything is measured or hidden | `{ trigger }`, the one pressed or passed to `start()`, else `null` |
 | `agentbuild:end` | Once the page is back, however the run ended | `{ skipped, built, total, seconds }` |
 
 `agentbuild:start` is the place to put scroll-reveal effects in their final
@@ -149,6 +150,46 @@ document.addEventListener('agentbuild:start', () => {
   for (const element of document.querySelectorAll('[data-reveal]')) {
     element.classList.add('is-revealed');
   }
+});
+```
+
+### Languages
+
+The HUD, the button's default label and the announcements follow the nearest
+`lang` attribute of the trigger, matched by subtags: `pt-BR` gets `pt`,
+`es-MX` gets `es`. Any other language gets English, and the label says so in
+its own `lang`.
+
+| Tag | Language | Word for "Simulation" |
+|---|---|---|
+| `de` | Deutsch | Simulation |
+| `en` | English | Simulation |
+| `es` | español | Simulación |
+| `fr` | français | Simulation |
+| `it` | italiano | Simulazione |
+| `nl` | Nederlands | Simulatie |
+| `pt` | português | Simulação |
+| `sv` | svenska | Simulering |
+
+`addLocale()` adds a language, or replaces one, at any time: the labels the
+library gave its triggers follow. It throws unless the label and both
+announcements open with the word for "Simulation" and the summary says it. `agents` holds a form per plural
+category of the language, as `Intl.PluralRules` names them, and always
+`other`. Add `dir: 'rtl'` for a right-to-left language.
+
+```js
+AgentBuild.addLocale('ca', {
+  kicker: 'Simulació',
+  label: "Simulació: agents d'IA construint la pàgina",
+  cta: 'Mira com els agents construeixen la pàgina',
+  agents: { one: '{count} agent', other: '{count} agents' },
+  layers: '{done}/{total} capes',
+  pause: 'Pausa',
+  resume: 'Continua',
+  finish: 'Acaba',
+  started: "Simulació en curs: un eixam d'agents d'IA està construint la pàgina. Prem Esc per acabar.",
+  built: 'Construïda en {seconds} s · era una simulació',
+  finished: 'Simulació acabada. La pàgina està completa.',
 });
 ```
 
@@ -185,15 +226,18 @@ classes, so a framework that rewrites `class` cannot undo it.
 ## Accessibility
 
 - It says what it is. The HUD opens with the word for "Simulation", and the
-  screen reader announcements at the start and the end do too, in English,
-  Spanish, French, German, Italian, Dutch and Swedish. The language comes from
-  the nearest `lang` attribute; any other language gets English.
+  screen reader announcements at the start and the end do too, in every
+  language it ships or accepts.
 - Under `prefers-reduced-motion: reduce` the button never appears,
   `start()` refuses to run, and a run in progress stops if the preference
   changes.
-- When a run starts, focus moves to the HUD's Pause button. Pause is a toggle
-  button with `aria-pressed`, Escape finishes at any time, and focus returns to
-  the trigger at the end.
+- When a run starts, focus moves to the HUD's Pause button, whose label says
+  what it does next: Pause or Resume. Escape finishes at any time. At the end,
+  focus returns to where it was, or to the trigger, and the page scrolls back
+  to where the visitor was, unless they scrolled during the run.
+- The HUD and the announcements carry their own `lang` and `dir`. The live
+  region is in place from the start of the run, so the first announcement is
+  heard. Right-to-left text is typed from the right.
 - It never rewrites content. It hides blocks with `visibility` and reveals
   them with Web Animations, so the layout never shifts. Hidden content is
   hidden from assistive technology too while the run lasts, which is why the

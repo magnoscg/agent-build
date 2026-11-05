@@ -1,5 +1,5 @@
-import { makeDots } from './dom.ts';
-import { LOCALES, resolveLanguage } from './locales/index.ts';
+import { el, makeDots } from './dom.ts';
+import { addLocale as register, type Locale, phrasesFor } from './locales/index.ts';
 import { cssLoaded, env, languageOf, supported } from './page.ts';
 import { isRunning, start } from './run/run.ts';
 
@@ -20,18 +20,39 @@ function onClick(event: MouseEvent) {
   start({ trigger });
 }
 
+function write(label: HTMLElement) {
+  const text = phrasesFor(languageOf(label.parentElement));
+  label.textContent = text.cta;
+  label.lang = text.language;
+  label.dir = text.dir;
+}
+
+/* Adds or replaces a language. The labels the library gave its triggers
+   follow, so it works before or after they are mounted. */
+export function addLocale(tag: string, texts: Locale): void {
+  register(tag, texts);
+  if (typeof document !== 'undefined') {
+    for (const label of document.querySelectorAll<HTMLElement>('[data-agent-build] > .agent-build-label')) {
+      write(label);
+    }
+  }
+}
+
 function setUp(trigger: HTMLElement) {
   if (trigger instanceof HTMLButtonElement && !trigger.hasAttribute('type')) {
     trigger.type = 'button';
   }
   /* An empty button gets the agent dots and a label in the page's language,
-     so it always has an accessible name. */
+     so it always has an accessible name. The label says which language it is
+     in, since it may be the English fallback. */
   const named = trigger.textContent.trim() !== ''
     || trigger.hasAttribute('aria-label')
     || trigger.hasAttribute('aria-labelledby')
     || trigger.querySelector('img[alt]:not([alt=""])');
   if (!named) {
-    trigger.append(makeDots(), LOCALES[resolveLanguage(languageOf(trigger))].cta);
+    const label = el('span', 'agent-build-label');
+    trigger.append(makeDots(), label);
+    write(label);
   }
   const accent = String(trigger.dataset.agentAccent ?? '').trim();
   if (accent && env.isColor(accent)) {

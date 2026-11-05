@@ -65,6 +65,7 @@ async function assertClean(page, problems) {
 }
 
 const events = (page) => page.evaluate(() => window.__events);
+const hudText = (page) => page.locator('.agent-build-hud').innerText();
 
 async function waitUntilGone(page) {
   await page.waitForFunction(() => !document.querySelector('.agent-build-stage, .agent-build-ruler, .agent-build-hud'));
@@ -180,14 +181,20 @@ test('a click runs the simulation, says so, pauses, and Escape restores the page
   assert.match(await hud.innerText(), /^Simulation · 20 agents · 0\/\d+ layers/);
   assert.equal(await page.evaluate(() => document.activeElement.textContent), 'Pause');
   await page.waitForFunction(() => document.querySelector('.agent-build-live')?.textContent.startsWith('Simulation running'));
+  const directions = await page.evaluate(() => ['.agent-build-hud', '.agent-build-live', '.agent-build-stage']
+    .map((selector) => document.querySelector(selector))
+    .map((element) => `${element.lang}:${element.dir}`));
+  assert.deepEqual(directions, ['en:ltr', 'en:ltr', ':ltr']);
   await page.waitForFunction(() => /^[1-9]\d*\//.test(document.querySelector('.agent-build-hud-layers')?.textContent || ''),
     null, { timeout: 20000 });
   await page.waitForTimeout(900);
   await page.screenshot({ path: fileURLToPath(new URL('running.png', OUTPUT)) });
 
-  await page.getByRole('button', { name: 'Pause' }).click();
+  const pause = page.locator('.agent-build-hud-btn').first();
+  await pause.click();
   const paused = await page.locator('.agent-build-hud-layers').textContent();
-  assert.equal(await page.locator('.agent-build-hud-btn').first().getAttribute('aria-pressed'), 'true');
+  assert.equal(await pause.textContent(), 'Resume');
+  assert.equal(await pause.getAttribute('aria-pressed'), null, 'a button whose name changes is not a toggle');
   await page.waitForTimeout(1200);
   assert.equal(await page.locator('.agent-build-hud-layers').textContent(), paused);
   await page.getByRole('button', { name: 'Resume' }).click();
@@ -291,6 +298,93 @@ test('the simulation speaks the language of its button', async (t) => {
   await page.locator('.agent-build-hud').waitFor();
   assert.match(await page.locator('.agent-build-hud').innerText(), /^Simulación · 20 agentes · 0\/\d+ capas/);
   assert.equal(await page.getByRole('group', { name: 'Simulación: agentes de IA montando la página' }).count(), 1);
+  await page.evaluate(() => window.AgentBuild.stop());
+  await waitUntilGone(page);
+  await assertClean(page, problems);
+});
+
+test('started from code it reports no trigger, then gives focus and scroll back', async (t) => {
+  const { page, problems } = await open(t, '/');
+  await page.evaluate(() => {
+    window.__live = {};
+    new MutationObserver((records) => {
+      for (const node of records.flatMap((record) => [...record.addedNodes])) {
+        if (node.classList?.contains('agent-build-live')) {
+          window.__live.added ??= performance.now();
+        } else if (node.nodeType === Node.TEXT_NODE && node.parentElement?.classList.contains('agent-build-live')) {
+          window.__live.spoke ??= performance.now();
+        }
+      }
+    }).observe(document.body, { childList: true, subtree: true });
+    document.querySelector('[data-demo-run]').focus({ preventScroll: true });
+    window.scrollTo({ top: 600, behavior: 'instant' });
+  });
+
+  assert.equal(await page.evaluate(() => window.AgentBuild.start()), true);
+  await page.locator('.agent-build-hud').waitFor();
+  await page.waitForFunction(() => window.__live.spoke);
+  await page.keyboard.press('Escape');
+  await waitUntilGone(page);
+
+  const after = await page.evaluate(() => ({
+    focused: document.activeElement.hasAttribute('data-demo-run'),
+    scrolled: scrollY,
+    silence: window.__live.spoke - window.__live.added,
+  }));
+  assert.equal(after.focused, true, 'focus is back where it was');
+  assert.equal(after.scrolled, 600, 'the page is back where it was');
+  assert.ok(after.silence >= 100, `the live region was there ${after.silence} ms before it spoke`);
+  assert.equal((await events(page))[0].detail.trigger, false);
+  await assertClean(page, problems);
+});
+
+test('a scroll of the visitor\'s own stops the follow, and the page stays there', async (t) => {
+  const { page, problems } = await open(t, '/');
+  await page.locator('button[data-agent-build]').click();
+  await page.locator('.agent-build-box').first().waitFor({ timeout: 20000 });
+  await page.evaluate(() => window.scrollTo({ top: 900, behavior: 'instant' }));
+  await page.waitForTimeout(600);
+  assert.equal(await page.evaluate(() => scrollY), 900, 'the follow lets go');
+
+  await page.keyboard.press('Escape');
+  await waitUntilGone(page);
+  assert.equal(await page.evaluate(() => scrollY), 900, 'the page is not sent back');
+  await assertClean(page, problems);
+});
+
+test('a right-to-left page gets its language, left-to-right overlays, and text typed from the right', async (t) => {
+  const { page, problems } = await open(t, '/test/fixtures/rtl.html');
+  const button = page.locator('button[data-agent-build]');
+  await button.waitFor({ state: 'visible' });
+  assert.equal(await button.textContent(), 'شاهد الوكلاء يبنون الصفحة');
+  assert.deepEqual(await button.locator('span[lang]').evaluate((label) => [label.lang, label.dir]), ['ar', 'rtl']);
+  await page.evaluate(() => {
+    window.__sweeps = [];
+    new MutationObserver((records) => {
+      for (const { target } of records) {
+        if (target.matches('p, h1, h2, h3') && target.getAttribute('data-agent-build-reveal') === 'shown') {
+          for (const animation of target.getAnimations()) {
+            const [first] = animation.effect.getKeyframes();
+            if (first.clipPath) {
+              window.__sweeps.push(first.clipPath);
+            }
+          }
+        }
+      }
+    }).observe(document.body, { attributes: true, attributeFilter: ['data-agent-build-reveal'], subtree: true });
+  });
+
+  await button.click();
+  await page.locator('.agent-build-hud').waitFor();
+  const directions = await page.evaluate(() => ['.agent-build-hud', '.agent-build-live', '.agent-build-stage',
+    '.agent-build-ruler--top'].map((selector) => document.querySelector(selector))
+    .map((element) => `${element.lang}:${element.dir}`));
+  assert.deepEqual(directions, ['ar:rtl', 'ar:rtl', ':ltr', ':ltr']);
+  assert.match(await hudText(page), /^محاكاة/);
+  await page.waitForFunction(() => window.__sweeps.length >= 3, null, { timeout: 20000 });
+  const sweeps = await page.evaluate(() => window.__sweeps);
+  assert.ok(sweeps.every((sweep) => /^inset\(-6px -6px -6px 100%\)$/.test(sweep)), sweeps.join(' | '));
+
   await page.evaluate(() => window.AgentBuild.stop());
   await waitUntilGone(page);
   await assertClean(page, problems);
@@ -480,7 +574,6 @@ test('a run never builds for much longer than twenty seconds, whatever the optio
   await assertClean(page, problems);
 });
 
-const hudText = (page) => page.locator('.agent-build-hud').innerText();
 
 test('an element named AgentBuild does not stop the library', async (t) => {
   const { page, problems } = await open(t, '/test/fixtures/frameworks.html');

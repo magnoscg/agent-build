@@ -41,7 +41,8 @@
     align-items: center;
     gap: 10px;
     margin: 0;
-    padding: 9px 18px 9px 14px;
+    padding-block: 9px;
+    padding-inline: 14px 18px;
     border: 1px solid rgba(124, 107, 255, 0.5);
     border-radius: 999px;
     background: rgba(124, 107, 255, 0.12);
@@ -341,7 +342,8 @@
   height: auto;
   max-width: calc(100vw - 32px);
   margin: 0;
-  padding: 8px 8px 8px 16px;
+  padding-block: 8px;
+  padding-inline: 16px 8px;
   overflow: visible;
   border: 1px solid rgba(237, 237, 242, 0.12);
   border-radius: 999px;
@@ -351,18 +353,18 @@
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
   color: rgba(235, 235, 245, 0.7);
   font: 500 max(12px, 0.75rem)/1.4 var(--agent-build-font);
-  text-align: left;
+  text-align: start;
   white-space: nowrap;
   transform: translate(-50%, 0);
 }
 .agent-build-hud-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .agent-build-hud-text strong { color: #EDEDF2; font-weight: 600; }
 
-.agent-build-dots { display: inline-flex; flex: none; padding-left: 4px; }
+.agent-build-dots { display: inline-flex; flex: none; padding-inline-start: 4px; }
 .agent-build-dots i {
   width: 10px;
   height: 10px;
-  margin-left: -4px;
+  margin-inline-start: -4px;
   border: 1.5px solid #14141A;
   border-radius: 50%;
   background: var(--agent-build-violet);
@@ -403,6 +405,7 @@
   transform: scaleX(0);
   transform-origin: left;
 }
+.agent-build-hud[dir="rtl"] .agent-build-hud-bar > span { transform-origin: right; }
 
 .agent-build-hud-btn {
   flex: none;
@@ -437,7 +440,7 @@
 }
 
 @media (max-width: 640px) {
-  .agent-build-hud { gap: 8px; padding: 6px 6px 6px 12px; font-size: max(11px, 0.6875rem); }
+  .agent-build-hud { gap: 8px; padding-block: 6px; padding-inline: 12px 6px; font-size: max(11px, 0.6875rem); }
   .agent-build-hud-btn { padding: 5px 10px; }
   .agent-build-hud-dots,
   .agent-build-hud-agents,

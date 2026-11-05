@@ -61,7 +61,8 @@ export function releaseAll(run: Run) {
 
 /* Frames fade in. Text is typed: the agent switches to the I-beam, jumps to
    the start of the first line and runs along it while a stepped sweep
-   follows. Everything else fades in, blurred unless the page filters it. */
+   follows, from the right in right-to-left text. Everything else fades in,
+   blurred unless the page filters it. */
 export async function reveal(run: Run, layer: Layer, agent: Agent) {
   const { element, kind } = layer;
   if (!run.running) {
@@ -77,18 +78,20 @@ export async function reveal(run: Run, layer: Layer, agent: Agent) {
     const duration = clamp(180 + layer.w * 0.4, 220, 600) * run.pace;
     const steps = clamp(Math.round(layer.w / 18), 4, 32);
     const line = layer.y + Math.min(layer.h, 28) / 2;
+    const rtl = style.direction === 'rtl';
+    const [from, to] = rtl ? [layer.x + layer.w, layer.x] : [layer.x, layer.x + layer.w];
     agent.element.classList.add('agent-build-agent--typing');
-    await move(run, agent, layer.x, line, 120 * run.pace);
+    await move(run, agent, from, line, 120 * run.pace);
     if (!run.running) {
       return;
     }
     mark(run, element, 'shown');
     await Promise.all([
       play(run, element, [
-        { clipPath: 'inset(-6px 100% -6px -6px)' },
+        { clipPath: rtl ? 'inset(-6px -6px -6px 100%)' : 'inset(-6px 100% -6px -6px)' },
         { clipPath: 'inset(-6px -6px -6px -6px)' },
       ], { duration, easing: `steps(${steps}, end)` }),
-      move(run, agent, layer.x + layer.w, line, duration, 'linear'),
+      move(run, agent, to, line, duration, 'linear'),
     ]);
     agent.element.classList.remove('agent-build-agent--typing');
     return;
