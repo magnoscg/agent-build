@@ -7,6 +7,8 @@ notes of that version.
 
 ## Unreleased
 
+## 1.0.2 - 2026-11-06
+
 ### Changed
 
 - The README opens with a logo, badges and links to the demo in every
