@@ -7,6 +7,8 @@ notes of that version.
 
 ## Unreleased
 
+## 1.0.6 - 2026-11-06
+
 ### Changed
 
 - The README header has a large button to the demo, which opens in English, and
