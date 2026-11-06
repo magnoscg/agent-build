@@ -289,6 +289,44 @@ test('the work layer lines up with the page even when the body is offset', async
   await assertClean(page, problems);
 });
 
+test('boxes take the size and angle of turned elements, on a body a collapsing margin moved', async (t) => {
+  const { page, problems } = await open(t, '/test/fixtures/rotated.html');
+  await page.evaluate(() => {
+    window.__boxes = [];
+    new MutationObserver((records) => {
+      for (const node of records.flatMap((record) => [...record.addedNodes])) {
+        if (node.classList?.contains('agent-build-box')) {
+          const rect = node.getBoundingClientRect();
+          window.__boxes.push({
+            bounds: [rect.left + scrollX, rect.top + scrollY, rect.width, rect.height],
+            size: [node.offsetWidth, node.offsetHeight],
+            angle: Number(node.style.transform.match(/rotate\(([-\d.e]+)deg\)/)?.[1] ?? 0),
+          });
+        }
+      }
+    }).observe(document.body, { childList: true, subtree: true });
+    window.AgentBuild.start({ count: 1, pace: 0.25 });
+  });
+  await page.waitForFunction(() => window.__events.some((event) => event.type === 'agentbuild:end'), null,
+    { timeout: 30000 });
+
+  const { boxes, targets } = await page.evaluate(() => ({
+    boxes: window.__boxes,
+    targets: ['.bar', '#title', '#left', '#right'].map((selector) => {
+      const rect = document.querySelector(selector).getBoundingClientRect();
+      return { selector, bounds: [rect.left + scrollX, rect.top + scrollY, rect.width, rect.height] };
+    }),
+  }));
+  const near = (a, b) => a.every((value, index) => Math.abs(value - b[index]) <= 2);
+  for (const { selector, bounds } of targets) {
+    assert.ok(boxes.some((box) => near(box.bounds, bounds)), `a box lines up with ${selector}`);
+  }
+  assert.deepEqual(boxes.find((box) => Math.round(box.angle) === -8)?.size, [196, 401]);
+  assert.deepEqual(boxes.find((box) => Math.round(box.angle) === 8)?.size, [176, 361]);
+  await waitUntilGone(page);
+  await assertClean(page, problems);
+});
+
 test('the simulation speaks the language of its button', async (t) => {
   const { page, problems } = await open(t, '/?lang=es');
   const button = page.locator('button[data-agent-build]');

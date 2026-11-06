@@ -97,6 +97,9 @@ export function makeBox(stage: HTMLElement, layer: Layer, qa: boolean) {
   element.style.height = `${layer.h}px`;
   element.style.setProperty('--w', `${layer.w}px`);
   element.style.setProperty('--h', `${layer.h}px`);
+  if (layer.angle) {
+    element.style.transform = `rotate(${layer.angle}deg)`;
+  }
   const line = el('span', 'agent-build-box-line');
   const tag = el('span', 'agent-build-box-label', qa ? `qa · ${layer.tag}` : layer.tag);
   const size = el('span', 'agent-build-box-size', `${Math.round(layer.w)} × ${Math.round(layer.h)}`);

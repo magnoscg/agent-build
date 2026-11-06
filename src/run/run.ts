@@ -1,4 +1,5 @@
 import { FADE_IN, FADE_OUT } from '../dom.ts';
+import { measure } from '../geometry.ts';
 import { columnEdges, labelOf, type Layer, makeClassifier, type Rest, selectLayers } from '../layers.ts';
 import { type Phrases, phrasesFor } from '../locales/index.ts';
 import {
@@ -179,10 +180,7 @@ function collect(config: Config) {
   const { layers, rest } = selectLayers<Element>(document.body, {
     childrenOf: (node) => node.children,
     classify: makeClassifier(config, (element) => getComputedStyle(element)),
-    measure: (element) => {
-      const rect = element.getBoundingClientRect();
-      return { x: rect.left + scrollX, y: rect.top + scrollY, w: rect.width, h: rect.height };
-    },
+    measure,
     limit: LIMITS.layers,
   });
   for (const layer of layers) {

@@ -1,0 +1,12 @@
+/* The header has no padding or border, so the top margin of its first child
+   collapses through it into the body, which moves down 16 px. The phones are
+   turned like the ones behind the portfolio's cards, one of them scaled. */
+body { position: relative; margin: 0; font: 16px/1.5 system-ui, sans-serif; }
+.bar { background: #F4F4F6; }
+.bar-inner { margin-top: 16px; padding: 12px 24px; }
+main { padding: 24px; }
+h1 { margin: 0; }
+.phones { display: flex; gap: 80px; padding: 40px 60px; }
+.phone { width: 196px; height: 401px; border-radius: 32px; background: #1E1E24; }
+#left { transform: rotate(-8deg); }
+#right { transform: rotate(8deg) scale(0.9); }
