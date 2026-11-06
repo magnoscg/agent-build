@@ -1,19 +1,34 @@
-# agent-build
+<div align="center">
 
-**A simulated swarm of AI agents rebuilds your page, block by block.**
+<img src="demo/logo.png" alt="" width="160" height="160">
 
-[![CI](https://github.com/magnoscg/agent-build/actions/workflows/ci.yml/badge.svg)](https://github.com/magnoscg/agent-build/actions/workflows/ci.yml)
+# 🧱 agent-build
+
+*A simulated swarm of AI agents rebuilds your page, block by block.*
+
+[![Release](https://img.shields.io/github/v/release/magnoscg/agent-build)](https://github.com/magnoscg/agent-build/releases/latest)
 [![npm](https://img.shields.io/npm/v/@magnoscg/agent-build)](https://www.npmjs.com/package/@magnoscg/agent-build)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![CI](https://github.com/magnoscg/agent-build/actions/workflows/ci.yml/badge.svg)](https://github.com/magnoscg/agent-build/actions/workflows/ci.yml)
+[![Stars](https://img.shields.io/github/stars/magnoscg/agent-build)](https://github.com/magnoscg/agent-build/stargazers)
+[![License: MIT](https://img.shields.io/github/license/magnoscg/agent-build)](LICENSE)
+[![Demo](https://img.shields.io/badge/demo-GitHub%20Pages-7C6BFF)](https://magnoscg.github.io/agent-build/)
 
-One button hides the page, and a swarm of agent cursors (planner, ui, copy,
-layout, qa, a11y, perf, i18n) puts it back together with selection boxes,
-sizes, layout guides, canvas rulers and a HUD that tells your visitors it is a
-simulation. Vanilla JavaScript and CSS with no runtime dependencies. It works
-on any page without configuration, including pages with a strict Content
-Security Policy and Trusted Types.
+**The simulation in**
+[English](https://magnoscg.github.io/agent-build/?lang=en) ·
+[español](https://magnoscg.github.io/agent-build/?lang=es) ·
+[français](https://magnoscg.github.io/agent-build/?lang=fr) ·
+[Deutsch](https://magnoscg.github.io/agent-build/?lang=de) ·
+[italiano](https://magnoscg.github.io/agent-build/?lang=it) ·
+[Nederlands](https://magnoscg.github.io/agent-build/?lang=nl) ·
+[português](https://magnoscg.github.io/agent-build/?lang=pt) ·
+[svenska](https://magnoscg.github.io/agent-build/?lang=sv)
 
-**[Live demo](https://magnoscg.github.io/agent-build/)**
+One button hides the page, and a swarm of agent cursors puts it back together
+with selection boxes, sizes, guides, rulers and a HUD that tells your visitors
+it is a simulation. Vanilla JavaScript and CSS with no runtime dependencies,
+at home under a strict Content Security Policy.
+
+</div>
 
 ![The demo page halfway through a run: selection boxes with tags and sizes, agent cursors with role names, rulers, guides and the HUD](demo/screenshot.png)
 
