@@ -151,7 +151,7 @@ function trackCoverage(page) {
 }
 
 test('the button shows up labelled, under a strict CSP with Trusted Types', async (t) => {
-  const { page, problems } = await open(t, '/');
+  const { page, problems } = await open(t, '/?intro=off');
   const button = page.locator('button[data-agent-build]');
 
   await button.waitFor({ state: 'visible' });
@@ -342,7 +342,7 @@ test('the simulation speaks the language of its button', async (t) => {
 });
 
 test('started from code it reports no trigger, then gives focus and scroll back', async (t) => {
-  const { page, problems } = await open(t, '/');
+  const { page, problems } = await open(t, '/?intro=off');
   await page.evaluate(() => {
     window.__live = {};
     new MutationObserver((records) => {
@@ -377,7 +377,7 @@ test('started from code it reports no trigger, then gives focus and scroll back'
 });
 
 test('focus goes back to where it was, not to a trigger passed in', async (t) => {
-  const { page, problems } = await open(t, '/');
+  const { page, problems } = await open(t, '/?intro=off');
   await page.evaluate(() => {
     document.querySelector('[data-demo-run]').focus({ preventScroll: true });
     window.AgentBuild.start({ trigger: document.querySelector('[data-agent-build]') });
@@ -703,5 +703,87 @@ test('ES modules in the browser share one run with the auto entry', async (t) =>
   assert.equal(await page.evaluate(() => window.AgentBuild.stop()), true);
   assert.equal(await page.evaluate(() => window.esm.isRunning()), false);
   await waitUntilGone(page);
+  await assertClean(page, problems);
+});
+
+// MARK: - The demo's intro
+
+test('the intro covers the page, says it is a simulation, and its button runs the build', async (t) => {
+  const { page, problems } = await open(t, '/');
+  const intro = page.locator('#demo-intro');
+  await intro.waitFor();
+  const button = intro.locator('button[data-agent-build]');
+  assert.equal(await button.textContent(), 'Put them to work');
+  assert.match(await intro.innerText(), /Simulation\./);
+  assert.equal(await page.locator('.intro-crowd .intro-agent').count(), 10);
+  await page.locator('.intro-bubble').first().waitFor({ timeout: 5000 });
+  assert.equal(await page.evaluate(() => document.querySelector('main').inert), true);
+  const box = await button.boundingBox();
+  assert.ok(Math.abs(box.width - box.height) < 1, 'the button is round');
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: fileURLToPath(new URL('intro.png', OUTPUT)) });
+
+  await page.evaluate(() => {
+    const intro = document.getElementById('demo-intro');
+    new MutationObserver((_, observer) => {
+      if (!intro.isConnected) {
+        window.__introLeftDuring = document.documentElement.getAttribute('data-agent-build-run');
+        observer.disconnect();
+      }
+    }).observe(document.body, { childList: true });
+  });
+  await button.click();
+  await page.locator('.agent-build-hud').waitFor();
+  assert.equal(await page.locator('#demo-intro').count(), 0, 'the intro is gone once the page is hidden');
+  const restored = await page.evaluate(() => {
+    const trigger = document.querySelector('[data-agent-build]');
+    return {
+      home: trigger.parentElement.classList.contains('cta-row'),
+      label: trigger.textContent,
+      inert: document.querySelector('main').inert,
+      gate: document.documentElement.hasAttribute('data-demo-intro'),
+    };
+  });
+  assert.deepEqual(restored, { home: true, label: 'Watch the agents build it', inert: false, gate: false });
+  assert.equal(await page.evaluate(() => window.__introLeftDuring), 'building', 'the page never shows between the intro and the build');
+  await page.evaluate(() => window.AgentBuild.stop());
+  await waitUntilGone(page);
+  assert.equal((await events(page))[0].detail.trigger, true);
+  await assertClean(page, problems);
+});
+
+test('the intro never hides the page from a section link, a language link or reduced motion', async (t) => {
+  for (const [path, options] of [['/#install', {}], ['/?lang=es', {}], ['/?intro=off', {}], ['/', { reducedMotion: 'reduce' }]]) {
+    const { page, problems } = await open(t, path, options);
+    assert.equal(await page.locator('#demo-intro').isVisible(), false, path);
+    assert.equal(await page.evaluate(() => document.documentElement.hasAttribute('data-demo-intro')), false, path);
+    assert.equal(await page.evaluate(() => document.querySelector('main').inert), false, path);
+    await assertClean(page, problems);
+  }
+});
+
+test('the intro can be skipped with its link or with Escape, and the page is simply there', async (t) => {
+  const { page, problems } = await open(t, '/');
+  await page.locator('.intro-skip').click();
+  assert.equal(await page.locator('#demo-intro').count(), 0);
+  assert.equal(await page.evaluate(() => document.querySelector('[data-agent-build]').parentElement.classList.contains('cta-row')), true);
+  assert.equal(await page.locator('#install h2').isVisible(), true);
+  await assertClean(page, problems);
+
+  const second = await open(t, '/');
+  await second.page.keyboard.press('Escape');
+  assert.equal(await second.page.locator('#demo-intro').count(), 0);
+  assert.equal(await second.page.evaluate(() => document.documentElement.hasAttribute('data-demo-intro')), false);
+  assert.deepEqual(await events(second.page), []);
+  await assertClean(second.page, second.problems);
+});
+
+test('if the preference for reduced motion appears during the intro, the page comes back', async (t) => {
+  const { page, problems } = await open(t, '/');
+  await page.locator('#demo-intro').waitFor();
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.waitForFunction(() => !document.querySelector('#demo-intro'));
+  assert.equal(await page.evaluate(() => document.documentElement.hasAttribute('data-demo-intro')), false);
+  assert.deepEqual(await events(page), []);
   await assertClean(page, problems);
 });

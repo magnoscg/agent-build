@@ -9,13 +9,28 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types 'none'">
   <title>agent-build · watch a swarm of AI agents build your page</title>
   <meta name="description" content="A simulation: one button hides your page and a swarm of AI agent cursors builds it back, block by block. Vanilla JS, no dependencies, strict-CSP friendly.">
+  <script src="demo/intro-gate.js"></script>
   <link rel="icon" href="demo/icon.png" type="image/png">
   <link rel="stylesheet" href="demo/demo.css">
   <link rel="stylesheet" href="dist/agent-build.css">
   <script src="demo/demo.js" defer></script>
+  <script src="demo/intro.js" defer></script>
   <script src="dist/agent-build.js" defer></script>
 </head>
 <body>
+  <!-- The opening act, shown by demo/intro-gate.js and run by demo/intro.js.
+       The big button is the hero's trigger, moved here for the occasion. -->
+  <div class="intro agent-build-layer" id="demo-intro" hidden>
+    <p class="brand intro-brand"><img src="demo/icon.png" alt="" width="28" height="28">agent-build</p>
+    <div class="intro-stage"></div>
+    <div class="intro-words">
+      <p class="intro-line">A swarm of agents. One button. No weekends.</p>
+      <p class="intro-note">Simulation. Nobody actually lives in the basement.</p>
+      <a class="intro-skip" href="#install">Skip the drama, read the docs</a>
+    </div>
+    <div class="intro-crowd" aria-hidden="true"></div>
+  </div>
+
   <a class="skip" href="#main">Skip to content</a>
 
   <header class="site-header">
