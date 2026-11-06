@@ -105,11 +105,11 @@ test('the source and the package agree on the version', () => {
   assert.equal(VERSION, pkg.version);
 });
 
-test('the package publishes the built files and nothing else, publicly', () => {
+test('the package publishes the built files and llms.txt, and nothing else, publicly', () => {
   assert.equal(pkg.name, '@magnoscg/agent-build');
   assert.equal(pkg.license, 'MIT');
   assert.equal(pkg.type, 'module');
-  assert.deepEqual(pkg.files, ['dist']);
+  assert.deepEqual(pkg.files, ['dist', 'llms.txt']);
   assert.equal(pkg.publishConfig.access, 'public');
   assert.deepEqual(pkg.exports['.'], { types: './dist/types/index.d.ts', default: './dist/agent-build.mjs' });
   assert.deepEqual(pkg.exports['./auto'], { types: './dist/types/auto.d.ts', default: './dist/auto.mjs' });

@@ -7,6 +7,17 @@ notes of that version.
 
 ## Unreleased
 
+### Added
+
+- The package ships `llms.txt`, and the README links it and opens with a short
+  guide for AI agents.
+- A copyable self-hosted example, and when to use the minified files.
+
+### Fixed
+
+- The README said `--agent-accent` on a button colours its run. It only changes
+  the button's look: use `data-agent-accent` or `:root`.
+
 ## 1.0.4 - 2026-11-06
 
 ### Changed

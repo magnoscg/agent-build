@@ -44,6 +44,7 @@ but `smoke`, which needs Google Chrome.
 | `src/page.ts` | Feature checks and the attributes that hold a run's state |
 | `src/run/` | One run, from `run.ts`: building, revealing, overlays, HUD, scrolling |
 | `src/agent-build.css` | Hiding, revealing, overlays and the default button, in `@layer agent-build` |
+| `llms.txt` | The summary for AI agents, shipped in the package and on the demo. Keep it in step with the API |
 | `scripts/` | `build.mjs`, `serve.mjs`, `smoke.mjs`, `sri.mjs`, `release.mjs` |
 | `test/unit/` | The source: layers, options, languages, promises, docs, release script |
 | `test/dist/` | The build: exports, Node ESM, TypeScript consumers under `bundler` and `nodenext` |

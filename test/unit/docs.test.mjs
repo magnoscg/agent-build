@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import * as api from '../../src/index.ts';
 import { OPTION_KEYS } from '../../src/options.ts';
-import { codeBlocks } from '../markdown.mjs';
+import { codeBlocks, section } from '../markdown.mjs';
 
 const read = (path) => readFile(new URL(`../../${path}`, import.meta.url), 'utf8');
 const [readme, llms, index, auto, pkg] = await Promise.all([
@@ -53,6 +53,14 @@ test('the README calls only members window.AgentBuild has', () => {
   for (const member of members) {
     assert.ok(globals.has(member), `AgentBuild.${member}`);
   }
+});
+
+test('the README sends agents to llms.txt and warns them to keep hidden', () => {
+  const guide = section(readme, '## For AI agents');
+  assert.match(guide, /https:\/\/magnoscg\.github\.io\/agent-build\/llms\.txt/);
+  assert.match(guide, /node_modules\/@magnoscg\/agent-build\/llms\.txt/);
+  assert.match(guide, /`hidden`/);
+  assert.match(llms, /keep `hidden`/);
 });
 
 test('llms.txt names every option and every member of window.AgentBuild', () => {

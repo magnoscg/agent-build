@@ -37,6 +37,7 @@
     },
     "./agent-build.css": "./dist/agent-build.css",
     "./dist/*": "./dist/*",
+    "./llms.txt": "./llms.txt",
     "./package.json": "./package.json"
   },
   "sideEffects": [
@@ -46,7 +47,8 @@
     "*.css"
   ],
   "files": [
-    "dist"
+    "dist",
+    "llms.txt"
   ],
   "publishConfig": {
     "access": "public"
