@@ -48,6 +48,7 @@ at home under a strict Content Security Policy.
 
 ## Contents
 
+- [For AI agents](#for-ai-agents)
 - [Quick start](#quick-start)
 - [Install](#install)
 - [Recipes](#recipes): [any bundler](#any-bundler), [React](#react), [Next.js](#nextjs), [Vue and Nuxt](#vue-and-nuxt), [Svelte and SvelteKit](#svelte-and-sveltekit), [Astro](#astro), [WordPress](#wordpress)
@@ -62,11 +63,26 @@ at home under a strict Content Security Policy.
 - [Contributing](#contributing)
 - [Credits](#credits)
 
+## For AI agents
+
+To add agent-build to a page you only need one of two parts of this file:
+[Quick start](#quick-start) or [self-hosted](#install) for a page whose HTML you
+write, or your framework's [recipe](#recipes). [Options](#options) if you want
+to tune it. The same summary, without the rest, is in
+[`llms.txt`](https://magnoscg.github.io/agent-build/llms.txt), which the package
+also ships at `node_modules/@magnoscg/agent-build/llms.txt`.
+
+- Keep `hidden` on the button, and leave its click to the library.
+- Load the stylesheet too: without it the button stays hidden, on purpose.
+- It always says "Simulation": `addLocale()` refuses texts that don't.
+
+To change the library itself, read [AGENTS.md](AGENTS.md).
+
 ## Quick start
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.4/dist/agent-build.css" integrity="sha384-RDMS0Do2tIOjoru/NEcQol6l2OBc6VsbCpo9K+bgtf/EDNuzjSL623D8x9be8awA" crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.4/dist/agent-build.js" integrity="sha384-Dphg2HI6UrAL19Asr5thfclfrZ/VNm1HccbuWhZXKJtb/dGKfcUUGgJ6wP3RCWsz" crossorigin="anonymous" defer></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.5/dist/agent-build.css" integrity="sha384-J3anTvh/g0WSEA3rC4XfzhJIT7FPIs0/eC7Fb0G2Fku3wOElf/9B/VuiuO/LP9fc" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.5/dist/agent-build.js" integrity="sha384-uleOa/pj2l/cn+ieGEYqYklZZxWA4VkPTryjz3wTtkHdQCsYitkvf3ec7o7BLfrg" crossorigin="anonymous" defer></script>
 <button data-agent-build hidden></button>
 ```
 
@@ -74,9 +90,10 @@ That is all. The script shows the button, labels it in the page's language,
 gives it a default look and runs the simulation on click. Put it wherever you
 like: the hero, the footer, an easter egg.
 
-The button ships `hidden` on purpose. It only appears when the script runs and
-the browser can play the simulation, and never for visitors who prefer reduced
-motion.
+The button ships `hidden` on purpose, so don't remove the attribute: the script
+does, once the stylesheet has loaded and the browser can play the simulation.
+Without it the button would show before that, even where it can never run. It
+never appears for visitors who prefer reduced motion.
 
 ## Install
 
@@ -85,11 +102,30 @@ refuse anything but these exact files, so a compromised CDN cannot serve you
 something else. They change with every version: take the snippet from the
 README of the version you use.
 
-**Self-hosted.** The library is two files, `agent-build.js` (or
-`agent-build.min.js`) and `agent-build.css`. Take them from the npm package,
-from jsDelivr or from the assets of a
-[GitHub release](https://github.com/magnoscg/agent-build/releases), and serve
-them next to your site.
+**Self-hosted.** The library is two files from `dist/`, a script and a
+stylesheet. Copy them from the npm package, or download them from the assets of
+a [GitHub release](https://github.com/magnoscg/agent-build/releases), to any
+folder your site serves:
+
+```sh
+pnpm add @magnoscg/agent-build
+mkdir -p public/vendor
+cp node_modules/@magnoscg/agent-build/dist/agent-build.min.js node_modules/@magnoscg/agent-build/dist/agent-build.min.css public/vendor/
+```
+
+```html
+<link rel="stylesheet" href="/vendor/agent-build.min.css">
+<script src="/vendor/agent-build.min.js" defer></script>
+<button data-agent-build hidden></button>
+```
+
+| Files | When |
+|---|---|
+| `dist/agent-build.min.js`, `dist/agent-build.min.css` | On a live site, if nothing else minifies them: they do the same and weigh less |
+| `dist/agent-build.js`, `dist/agent-build.css` | To read or debug them, or when your own build minifies them |
+
+These need no `integrity`, which guards files from someone else's server, and
+under a Content Security Policy `'self'` covers both.
 
 **From npm.**
 
@@ -268,7 +304,7 @@ wins over the attributes.
 | `data-agent-pace` | `pace` | `1` | Multiplies every duration, from 0.25 to 4. `2` is twice as slow. |
 | `data-agent-count` | `count` | `20`, or `14` under 720 px | How many agents, from 1 to 40. |
 | `data-agent-accent` | `accent` | `#7C6BFF` | Any CSS colour, for boxes, guides and the progress bar. |
-| `data-agent-hub` | `hub` | Four blocks, inline SVG | URL of the icon the agents fly out of, usually your logo. |
+| `data-agent-hub` | `hub` | Four blocks, inline SVG | URL of the icon the agents fly out of, usually your logo, drawn at 32 × 32 px. It can be relative to the page. An SVG needs a `viewBox` or a `width` and `height`. |
 | `data-agent-frames` | `frames` | `header, footer, section, article, aside` | Selector for boxes: their box is revealed first, their content later. |
 | `data-agent-atoms` | `atoms` | Headings, `p`, `li`, `dt`, `dd`, `blockquote`, `pre`, media, `table`, links, buttons and form controls | Selector for blocks revealed whole. |
 | `data-agent-pop` | `pop` | Media, buttons, form controls, `.button`, `.btn`, `[role="button"]` | Selector for the blocks that fade in instead of being typed. |
@@ -283,8 +319,15 @@ and numbers are clamped, so a typo never breaks the page.
 
 ### Styling
 
-- `--agent-accent` sets the accent colour from your CSS, on `:root` or on the
-  button. `--agent-mono` sets the monospace font of the labels and the HUD.
+- `data-agent-accent` colours one button and the runs it starts, and wins over
+  everything but `start({ accent })`. Use it when the colour belongs to that
+  button.
+- `--agent-accent` on `:root` colours every button and run on the page. Use it
+  when the colour comes from your theme, as in a dark mode. Set on a button in
+  your CSS it only changes that button's look, because the run's overlays don't
+  live inside the button.
+- `--agent-mono` sets the monospace font of the labels and the HUD, also on
+  `:root`.
 - A trigger without a `class` attribute takes the default look. Give it your
   own classes and it is yours to style; add `agent-build-button` next to them
   to keep the default. The default look lives in the `agent-build` cascade
@@ -304,7 +347,7 @@ AgentBuild.stop()         // true if a run was stopped
 AgentBuild.isRunning()    // true while a run is in progress
 AgentBuild.mount(root)    // shows the [data-agent-build] triggers in root, the document by default
 AgentBuild.addLocale(tag, texts) // adds or replaces a language
-AgentBuild.version        // "1.0.4"
+AgentBuild.version        // "1.0.5"
 ```
 
 The module also exports `defineElement()` and the types:
