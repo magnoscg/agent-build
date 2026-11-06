@@ -50,8 +50,8 @@ Security Policy and Trusted Types.
 ## Quick start
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.0/dist/agent-build.css" integrity="sha384-E0ogbToiARWkK9fsLJBkgyhz6eSASeMjaDa7ToMGpRRm2OrwzNZjMO7XNNnucfVE" crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.0/dist/agent-build.js" integrity="sha384-rD4o+VrOYbVtwba0/RL5I/N908uOEbQ/siVmjVIu7stmtJXvvecKkRvyxuYkTRw2" crossorigin="anonymous" defer></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.1/dist/agent-build.css" integrity="sha384-Qy1oY7BF4YUtTIRLQhe7Nr4UvgkoffV4Uc1rJxdVsKiJlj7Z9zKtFfr2IhJVky6e" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.1/dist/agent-build.js" integrity="sha384-Q663ZPNQQydf7bRMZL63XUOHmvH+OJbBLm9MMnCkp2N7QqWwQe7/PzrfXP4dQy6z" crossorigin="anonymous" defer></script>
 <button data-agent-build hidden></button>
 ```
 
@@ -289,7 +289,7 @@ AgentBuild.stop()         // true if a run was stopped
 AgentBuild.isRunning()    // true while a run is in progress
 AgentBuild.mount(root)    // shows the [data-agent-build] triggers in root, the document by default
 AgentBuild.addLocale(tag, texts) // adds or replaces a language
-AgentBuild.version        // "1.0.0"
+AgentBuild.version        // "1.0.1"
 ```
 
 The module also exports `defineElement()` and the types:

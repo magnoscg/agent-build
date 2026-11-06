@@ -7,6 +7,8 @@ notes of that version.
 
 ## Unreleased
 
+## 1.0.1 - 2026-11-06
+
 ### Fixed
 
 - A turned element gets a box of its own size and angle, drawn from its
