@@ -1,6 +1,6 @@
 {
   "name": "@magnoscg/agent-build",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A simulated swarm of AI agents rebuilds your page, block by block. Vanilla, dependency-free and strict-CSP friendly.",
   "keywords": [
     "animation",

@@ -7,6 +7,8 @@ notes of that version.
 
 ## Unreleased
 
+## 1.0.5 - 2026-11-06
+
 ### Added
 
 - The package ships `llms.txt`, and the README links it and opens with a short
