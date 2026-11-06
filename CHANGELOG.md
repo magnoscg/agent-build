@@ -7,6 +7,12 @@ notes of that version.
 
 ## Unreleased
 
+## 1.0.3 - 2026-11-06
+
+### Changed
+
+- The demo uses the new logo as its icon and favicon.
+
 ## 1.0.2 - 2026-11-06
 
 ### Changed

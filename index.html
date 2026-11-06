@@ -9,7 +9,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types 'none'">
   <title>agent-build · watch a swarm of AI agents build your page</title>
   <meta name="description" content="A simulation: one button hides your page and a swarm of AI agent cursors builds it back, block by block. Vanilla JS, no dependencies, strict-CSP friendly.">
-  <link rel="icon" href="demo/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="demo/icon.png" type="image/png">
   <link rel="stylesheet" href="demo/demo.css">
   <link rel="stylesheet" href="dist/agent-build.css">
   <script src="demo/demo.js" defer></script>
@@ -20,7 +20,7 @@
 
   <header class="site-header">
     <div class="wrap header-inner">
-      <a class="brand" href="./"><img src="demo/icon.svg" alt="" width="28" height="28">agent-build</a>
+      <a class="brand" href="./"><img src="demo/icon.png" alt="" width="28" height="28">agent-build</a>
       <nav aria-label="Main">
         <ul>
           <li><a href="#install">Install</a></li>
@@ -60,8 +60,8 @@
       <div class="wrap">
         <h2>Three lines</h2>
         <p class="section-intro">The stylesheet, the script with <code>defer</code> and a hidden button. The script shows the button only when the visitor's browser can run the simulation and nobody asked for less motion.</p>
-        <pre><code>&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.2/dist/agent-build.css" integrity="sha384-05hwZ3q4HJ9o/dQNPNkjnJdZV0YkbJVJXkN6sSD3odKGE6XlbMumrEuvqelDGK6g" crossorigin="anonymous"&gt;
-&lt;script src="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.2/dist/agent-build.js" integrity="sha384-2zDbfMr7HgEbJOK3dttoFKLYDX6Gcl13KHwuJ68syqFs46cx+zQ3v/9ONlcIq4zL" crossorigin="anonymous" defer&gt;&lt;/script&gt;
+        <pre><code>&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.3/dist/agent-build.css" integrity="sha384-P2IWhT4kvU0D0qXUx4kmcw7HHZiMEWocJDWMORuczmxq3ggJ5ps8lvdqOD0SdsM5" crossorigin="anonymous"&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/@magnoscg/agent-build@1.0.3/dist/agent-build.js" integrity="sha384-PzM5hIOQ1cc5mrSxXZLrGKuQ1EADyTpqNqRdpZgP+9bC5HrFiGyvbxNoIwW3zf2k" crossorigin="anonymous" defer&gt;&lt;/script&gt;
 &lt;button data-agent-build hidden&gt;&lt;/button&gt;</code></pre>
         <p class="section-intro">Or install it with <code>pnpm add @magnoscg/agent-build</code> and import <code>@magnoscg/agent-build</code> and <code>@magnoscg/agent-build/agent-build.css</code> from your bundle.</p>
       </div>
