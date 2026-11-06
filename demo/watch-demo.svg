@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 220" width="720" height="220" role="img" aria-label="Watch the demo">
+  <title>Watch the demo</title>
+  <defs>
+    <linearGradient id="face" x1="0" y1="0" x2="1" y2="0.4">
+      <stop offset="0" stop-color="#FF5FA8"/>
+      <stop offset="0.34" stop-color="#8A5CF6"/>
+      <stop offset="0.7" stop-color="#5546E8"/>
+      <stop offset="1" stop-color="#3F78F2"/>
+    </linearGradient>
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.34"/>
+      <stop offset="0.55" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="blur" x="-20%" y="-60%" width="140%" height="220%"><feGaussianBlur stdDeviation="16"/></filter>
+    <clipPath id="pill"><rect x="110" y="60" width="500" height="96" rx="48"/></clipPath>
+    <path id="arrow" d="M1.5 1.5v13l3.6-3.3 2.4 5.3 2.2-1-2.4-5.2h5.1z" stroke="#14141A" stroke-width="1.4" stroke-linejoin="round"/>
+  </defs>
+  <style>
+    .label { font: 800 36px system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; fill: #FFFFFF; }
+    .tag { font: 700 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #08080B; }
+    .chip { font: 700 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #FFFFFF; }
+    .talk { font: 700 14px system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; fill: #08080B; }
+    .ring, .glow, .play, .dot { transform-box: fill-box; transform-origin: center; }
+    .shine { transform: translateX(-200px); }
+    .bubble { opacity: 0; }
+    @media (prefers-reduced-motion: reduce) {
+      .shine { display: none; }
+      .bubble { opacity: 1; }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .glow { animation: glow 2.8s ease-in-out infinite; }
+      .ring { animation: ring 2.8s ease-out infinite; }
+      .shine { animation: shine 3.6s cubic-bezier(0.4, 0, 0.3, 1) infinite; }
+      .play { animation: beat 1.4s ease-in-out infinite; }
+      .dot { animation: hop 1.8s cubic-bezier(0.2, 0.7, 0.3, 1) infinite; }
+      .dot:nth-child(2) { animation-delay: 0.12s; }
+      .dot:nth-child(3) { animation-delay: 0.24s; }
+      .dot:nth-child(4) { animation-delay: 0.36s; }
+      .dot:nth-child(5) { animation-delay: 0.48s; }
+      .marching { animation: march 1s linear infinite; }
+      .a { animation: a 6s cubic-bezier(0.45, 0.05, 0.3, 1) infinite; }
+      .b { animation: b 7s cubic-bezier(0.45, 0.05, 0.3, 1) infinite; }
+      .c { animation: c 5.4s cubic-bezier(0.45, 0.05, 0.3, 1) infinite; }
+      .d { animation: d 6.6s cubic-bezier(0.45, 0.05, 0.3, 1) infinite; }
+      .bubble { animation: say 6s ease-out infinite; }
+    }
+    @keyframes glow { 50% { opacity: 0.95; transform: scale(1.03); } }
+    @keyframes ring { from { opacity: 0.7; transform: scale(1); } 70%, to { opacity: 0; transform: scale(1.07, 1.3); } }
+    @keyframes shine { from { transform: translateX(-200px); } 60%, to { transform: translateX(720px); } }
+    @keyframes beat { 50% { transform: scale(1.1); } }
+    @keyframes hop { 0%, 60%, 100% { transform: none; } 30% { transform: translateY(-7px); } }
+    @keyframes march { to { stroke-dashoffset: -11; } }
+    @keyframes a { 0%, 12%, 100% { transform: none; } 40%, 58% { transform: translate(-66px, 22px); } 80% { transform: translate(-18px, -6px); } }
+    @keyframes b { 0%, 100% { transform: none; } 30%, 44% { transform: translate(78px, -14px); } 72% { transform: translate(30px, 8px); } }
+    @keyframes c { 0%, 100% { transform: none; } 35%, 50% { transform: translate(-14px, -42px); } 75% { transform: translate(8px, 14px); } }
+    @keyframes d { 0%, 100% { transform: none; } 40%, 55% { transform: translate(22px, 36px); } 78% { transform: translate(-10px, 10px); } }
+    @keyframes say { 0%, 12% { opacity: 0; } 18%, 34% { opacity: 1; } 40%, 100% { opacity: 0; } }
+  </style>
+
+  <rect class="glow" x="118" y="70" width="484" height="92" rx="46" fill="#7C6BFF" opacity="0.6" filter="url(#blur)"/>
+  <rect class="ring" x="110" y="60" width="500" height="96" rx="48" fill="none" stroke="#7C6BFF" stroke-width="3" opacity="0"/>
+
+  <rect x="110" y="68" width="500" height="96" rx="48" fill="#2F2499"/>
+  <rect x="110" y="60" width="500" height="96" rx="48" fill="url(#face)"/>
+  <rect x="110" y="60" width="500" height="96" rx="48" fill="url(#gloss)"/>
+  <g clip-path="url(#pill)"><rect class="shine" x="0" y="40" width="170" height="140" fill="url(#shine)" transform="skewX(-18)"/></g>
+
+  <g class="play">
+    <circle cx="164" cy="108" r="30" fill="#FFFFFF"/>
+    <path d="M154 92.5v31a2.5 2.5 0 0 0 3.8 2.1l24.5-15.5a2.5 2.5 0 0 0 0-4.2l-24.5-15.5a2.5 2.5 0 0 0-3.8 2.1z" fill="#5546E8"/>
+  </g>
+  <text class="label" x="208" y="121" textLength="282" lengthAdjust="spacingAndGlyphs">Watch the demo</text>
+  <g stroke="#FFFFFF" stroke-width="2.5">
+    <circle class="dot" cx="516" cy="108" r="10" fill="#7C6BFF"/>
+    <circle class="dot" cx="532" cy="108" r="10" fill="#26BECF"/>
+    <circle class="dot" cx="548" cy="108" r="10" fill="#30D158"/>
+    <circle class="dot" cx="564" cy="108" r="10" fill="#FFB340"/>
+    <circle class="dot" cx="580" cy="108" r="10" fill="#FF6FAE"/>
+  </g>
+
+  <rect class="marching" x="98" y="48" width="524" height="128" fill="none" stroke="#7C6BFF" stroke-width="2" stroke-dasharray="7 4"/>
+  <g fill="#FFFFFF" stroke="#7C6BFF" stroke-width="2">
+    <rect x="93" y="43" width="10" height="10"/>
+    <rect x="617" y="43" width="10" height="10"/>
+    <rect x="93" y="171" width="10" height="10"/>
+    <rect x="617" y="171" width="10" height="10"/>
+  </g>
+  <rect x="98" y="20" width="58" height="22" rx="4" fill="#7C6BFF"/>
+  <text class="chip" x="106" y="35" textLength="42">button</text>
+  <rect x="320" y="184" width="80" height="22" rx="4" fill="#7C6BFF"/>
+  <text class="chip" x="329" y="199" textLength="62">500 × 96</text>
+
+  <g transform="translate(600 22)"><g class="a">
+    <g class="bubble" transform="translate(-122 -18)">
+      <rect width="124" height="28" rx="10" fill="#FF6FAE"/>
+      <text class="talk" x="11" y="19" textLength="102">Not the button!</text>
+    </g>
+    <use href="#arrow" fill="#FF6FAE" transform="scale(1.5)"/>
+    <rect x="16" y="22" width="68" height="20" rx="4" fill="#FF6FAE"/>
+    <text class="tag" x="22" y="36" textLength="56">copy-03</text>
+  </g></g>
+  <g transform="translate(22 170)"><g class="b">
+    <use href="#arrow" fill="#26BECF" transform="scale(1.5)"/>
+    <rect x="16" y="22" width="50" height="20" rx="4" fill="#26BECF"/>
+    <text class="tag" x="22" y="36" textLength="38">ui-02</text>
+  </g></g>
+  <g transform="translate(628 150)"><g class="c">
+    <use href="#arrow" fill="#FFB340" transform="scale(1.5)"/>
+    <rect x="16" y="22" width="50" height="20" rx="4" fill="#FFB340"/>
+    <text class="tag" x="22" y="36" textLength="38">qa-05</text>
+  </g></g>
+  <g transform="translate(30 14)"><g class="d">
+    <use href="#arrow" fill="#30D158" transform="scale(1.5)"/>
+  </g></g>
+</svg>

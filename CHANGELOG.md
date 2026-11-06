@@ -7,6 +7,20 @@ notes of that version.
 
 ## Unreleased
 
+## 1.0.6 - 2026-11-06
+
+### Changed
+
+- The README header has a large button to the demo, which opens in English, and
+  the other languages are secondary links.
+- The demo's language links from outside show the intro too.
+
+### Fixed
+
+- The demo's intro was cancelled in low windows, such as a phone in landscape.
+  It now fits with a smaller button and fewer cursors, and a window too small
+  for any cursor keeps the intro until it grows.
+
 ## 1.0.5 - 2026-11-06
 
 ### Added

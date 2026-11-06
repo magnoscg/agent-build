@@ -63,6 +63,24 @@ test('the README sends agents to llms.txt and warns them to keep hidden', () => 
   assert.match(llms, /keep `hidden`/);
 });
 
+test('the README header opens the demo in English, at its clean URL, before anything else', () => {
+  const header = readme.slice(0, readme.indexOf('\n## '));
+  const button = header.match(/<a href="([^"]+)"><img [^>]*alt="Watch the demo"[^>]*><\/a>/);
+  assert.equal(button?.[1], 'https://magnoscg.github.io/agent-build/');
+  assert.ok(button.index < header.indexOf('img.shields.io/github/v/release'), 'it comes before the other badges');
+  assert.ok(button.index < header.indexOf('?lang='), 'and before the other languages');
+});
+
+test('the README button is a self-contained image that respects reduced motion', async () => {
+  assert.match(readme, /<img src="demo\/watch-demo\.svg" alt="Watch the demo"/);
+  const button = await read('demo/watch-demo.svg');
+  assert.doesNotMatch(button, /<script|<foreignObject|\son[a-z]+=|@import|url\(['"]?http/i);
+  assert.deepEqual([...button.matchAll(/href="([^"]+)"/g)].map(([, target]) => target).filter((target) => !target.startsWith('#')), []);
+  const moving = button.slice(button.indexOf('prefers-reduced-motion: no-preference'));
+  assert.match(moving, /animation:/);
+  assert.equal(button.slice(0, button.indexOf('prefers-reduced-motion: no-preference')).includes('animation:'), false, 'it only moves when motion is welcome');
+});
+
 test('llms.txt names every option and every member of window.AgentBuild', () => {
   for (const name of [...globals, ...OPTION_KEYS]) {
     assert.match(llms, new RegExp(`\\b${name}\\b`), name);

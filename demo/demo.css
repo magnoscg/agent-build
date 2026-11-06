@@ -254,6 +254,7 @@ html[data-demo-intro] .intro[hidden] { display: block; }
   --disc: clamp(176px, 30vmin, 256px);
   /* The library's hub appears at this height, so the button turns into it. */
   --centre: min(45vh, 380px);
+  --gap: 36px;
   position: fixed;
   inset: 0;
   z-index: 2147482000;
@@ -320,7 +321,7 @@ html[data-demo-intro] .intro[hidden] { display: block; }
 }
 .intro-words {
   position: absolute;
-  top: calc(var(--centre) + var(--disc) / 2 + 36px);
+  top: calc(var(--centre) + var(--disc) / 2 + var(--gap));
   left: 50%;
   width: min(100% - 32px, 46ch);
   transform: translateX(-50%);
@@ -329,7 +330,7 @@ html[data-demo-intro] .intro[hidden] { display: block; }
 .intro-line { margin: 0; font-weight: 600; font-size: 1.0625rem; text-wrap: balance; }
 .intro-note { margin: 4px 0 0; color: var(--muted); font-size: 0.875rem; }
 .intro-skip { display: inline-block; margin-top: 10px; padding: 4px 8px; font-size: 0.875rem; }
-.intro-crowd { position: absolute; inset: 0; pointer-events: none; }
+.intro-crowd { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .intro-agent { position: absolute; top: 0; left: 0; will-change: transform; }
 .intro-bubble {
   position: absolute;
@@ -353,6 +354,21 @@ html[data-demo-intro] .intro[hidden] { display: block; }
   transform-origin: 100% 100%;
 }
 @media (max-width: 719px) {
+  .intro-bubble { max-width: 148px; }
+}
+/* In a low window the button shrinks and the words close up, so all of it
+   fits, the note that it is a simulation included. Lower still, it scrolls. */
+@media (max-height: 559px) {
+  .intro {
+    --disc: clamp(112px, 36vh, 176px);
+    --gap: 18px;
+    overflow-y: auto;
+  }
+  .intro [data-agent-build],
+  .intro-ghost { gap: 6px; padding: 12px; font-size: 0.9375rem; }
+  .intro-line { font-size: 0.9375rem; }
+  .intro-note { margin-top: 0; font-size: 0.8125rem; }
+  .intro-skip { margin-top: 2px; padding: 2px 8px; font-size: 0.8125rem; }
   .intro-bubble { max-width: 148px; }
 }
 
