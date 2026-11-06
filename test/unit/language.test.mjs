@@ -124,6 +124,14 @@ test('the README table lists every shipped language with its disclosure', async 
   }
 });
 
+test('the README header links the demo in every shipped language', async () => {
+  const readme = await read('README.md');
+  const end = readme.indexOf('\n## ');
+  assert.ok(end > 0, 'the README has sections after its header');
+  const linked = [...readme.slice(0, end).matchAll(/agent-build\/\?lang=([a-z-]+)\)/g)].map(([, tag]) => tag);
+  assert.deepEqual(linked.sort(), shipped);
+});
+
 test('the demo offers every shipped language', async () => {
   const [page, script] = await Promise.all([read('index.html'), read('demo/demo.js')]);
   const links = [...page.matchAll(/data-demo-lang="([a-z-]+)"/g)].map(([, tag]) => tag).sort();

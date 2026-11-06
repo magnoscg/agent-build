@@ -7,6 +7,11 @@ notes of that version.
 
 ## Unreleased
 
+### Changed
+
+- The README opens with a logo, badges and links to the demo in every
+  language of the simulation.
+
 ## 1.0.1 - 2026-11-06
 
 ### Fixed

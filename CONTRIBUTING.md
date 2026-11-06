@@ -64,8 +64,9 @@ library takes no runtime dependencies.
      `other`.
    - Add `dir: 'rtl'` for a right-to-left language.
 2. Import it in `src/locales/index.ts` and add it to the shipped languages.
-3. Add its row to the Languages table in `README.md`, its link to
-   `index.html` and its tag to `LANGUAGES` in `demo/demo.js`.
+3. Add its row to the Languages table and its link in the header of
+   `README.md`, its link to `index.html` and its tag to `LANGUAGES` in
+   `demo/demo.js`.
 4. Add its word for "Simulation" to `DISCLOSURES` in
    `test/unit/language.test.mjs`.
 5. Run `pnpm test:unit`, which checks all of the above, and look at it with
