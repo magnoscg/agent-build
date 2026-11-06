@@ -426,7 +426,8 @@ Every element under `<body>` is one of these, in document order:
 A run builds for about twenty seconds, pauses aside, whatever the pace and
 count; then the rest of the page appears at once. Each block is measured again
 when its agent takes it, so fonts, images or transitions that move things
-cannot leave a box behind. When the page scrolls an inner container instead of
+cannot leave a box behind, and a turned element gets a box of its own size and
+angle. When the page scrolls an inner container instead of
 the document, the blocks in view are built and the rest is shown as it is.
 
 The run's state lives in attributes of its own, `data-agent-build-run` on
@@ -500,6 +501,7 @@ not committed.
 | `src/options.ts` | Defaults, limits and validation of every option |
 | `src/locales/` | One data file per language, and the registry that resolves and checks them |
 | `src/layers.ts` | Which elements become layers, as pure functions |
+| `src/geometry.ts` | Where a block is: its box in document coordinates, turned with the element |
 | `src/page.ts` | Feature checks and the attributes that hold a run's state |
 | `src/run/` | A run: `run.ts` drives it, `build.ts` puts the agents to work, `reveal.ts`, `stage.ts` (overlays), `hud.ts`, `follow.ts` (scrolling and keys), `animate.ts` |
 | `src/agent-build.css` | Hiding, revealing, the overlays and the default button, in the `agent-build` cascade layer |

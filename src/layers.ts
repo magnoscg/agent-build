@@ -11,6 +11,7 @@ export interface Box {
   y: number;
   w: number;
   h: number;
+  angle: number;
 }
 
 export interface Layer<Node = Element> extends Box {

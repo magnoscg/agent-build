@@ -1,3 +1,4 @@
+import { pointOf } from '../geometry.ts';
 import type { Layer } from '../layers.ts';
 import { REVEAL } from '../page.ts';
 import { clamp } from '../util.ts';
@@ -77,11 +78,11 @@ export async function reveal(run: Run, layer: Layer, agent: Agent) {
   if (kind === 'type' && style.clipPath === 'none') {
     const duration = clamp(180 + layer.w * 0.4, 220, 600) * run.pace;
     const steps = clamp(Math.round(layer.w / 18), 4, 32);
-    const line = layer.y + Math.min(layer.h, 28) / 2;
+    const line = Math.min(layer.h, 28) / 2 / layer.h;
     const rtl = style.direction === 'rtl';
-    const [from, to] = rtl ? [layer.x + layer.w, layer.x] : [layer.x, layer.x + layer.w];
+    const [from, to] = rtl ? [1, 0] : [0, 1];
     agent.element.classList.add('agent-build-agent--typing');
-    await move(run, agent, from, line, 120 * run.pace);
+    await move(run, agent, ...pointOf(layer, from, line), 120 * run.pace);
     if (!run.running) {
       return;
     }
@@ -91,7 +92,7 @@ export async function reveal(run: Run, layer: Layer, agent: Agent) {
         { clipPath: rtl ? 'inset(-6px -6px -6px 100%)' : 'inset(-6px 100% -6px -6px)' },
         { clipPath: 'inset(-6px -6px -6px -6px)' },
       ], { duration, easing: `steps(${steps}, end)` }),
-      move(run, agent, to, line, duration, 'linear'),
+      move(run, agent, ...pointOf(layer, to, line), duration, 'linear'),
     ]);
     agent.element.classList.remove('agent-build-agent--typing');
     return;

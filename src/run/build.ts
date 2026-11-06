@@ -1,4 +1,5 @@
 import { FADE_IN, FADE_OUT } from '../dom.ts';
+import { bottomOf, measure, pointOf } from '../geometry.ts';
 import type { Layer } from '../layers.ts';
 import { LIMITS } from '../options.ts';
 import { clamp } from '../util.ts';
@@ -50,26 +51,19 @@ function finishQueue(run: Run) {
   }
 }
 
-/* Measured when the agent takes it, so the box matches the page as it is
-   now, after fonts, images or transitions moved things. */
-function measure(layer: Layer) {
-  const rect = layer.element.getBoundingClientRect();
-  layer.x = rect.left + scrollX;
-  layer.y = rect.top + scrollY;
-  layer.w = rect.width;
-  layer.h = rect.height;
-}
-
 async function build(run: Run, stage: HTMLElement, agent: Agent, layer: Layer) {
-  measure(layer);
+  /* Measured when the agent takes it, so the box matches the page as it is
+     now, after fonts, images or transitions moved things. */
+  Object.assign(layer, measure(layer.element));
   if (layer.w < 2 || layer.h < 2) {
     showNow(run, layer);
     return;
   }
-  growStage(stage, layer.y + layer.h);
+  growStage(stage, bottomOf(layer));
   const qa = layer.index % 9 === 4;
-  await move(run, agent, layer.x, layer.y,
-    clamp(Math.hypot(layer.x - agent.x, layer.y - agent.y) * 0.42, 200, 540) * run.pace);
+  const [startX, startY] = pointOf(layer, 0, 0);
+  await move(run, agent, startX, startY,
+    clamp(Math.hypot(startX - agent.x, startY - agent.y) * 0.42, 200, 540) * run.pace);
 
   const box = makeBox(stage, layer, qa);
   const rule = layer.kind === 'frame' || /^h[12]$/.test(layer.tag) ? makeGuide(stage, 'row', layer.y) : null;
@@ -83,7 +77,7 @@ async function build(run: Run, stage: HTMLElement, agent: Agent, layer: Layer) {
       { clipPath: 'inset(-4px 100% 100% -4px)' },
       { clipPath: 'inset(-4px -4px -4px -4px)' },
     ], { duration: draw, easing: EASE, fill: 'forwards' }),
-    move(run, agent, layer.x + layer.w, layer.y + layer.h, draw),
+    move(run, agent, ...pointOf(layer, 1, 1), draw),
   ]);
   agent.element.classList.remove('agent-build-agent--drawing');
   for (const label of [box.tag, box.size]) {

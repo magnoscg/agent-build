@@ -7,6 +7,11 @@ notes of that version.
 
 ## Unreleased
 
+### Fixed
+
+- A turned element gets a box of its own size and angle, drawn from its
+  turned corners, instead of the upright rectangle around it.
+
 ## 1.0.0 - 2026-11-05
 
 ### Added
