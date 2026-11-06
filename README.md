@@ -6,14 +6,15 @@
 
 *A simulated swarm of AI agents rebuilds your page, block by block.*
 
+<a href="https://magnoscg.github.io/agent-build/"><img src="demo/watch-demo.svg" alt="Watch the demo" width="560"></a>
+
 [![Release](https://img.shields.io/github/v/release/magnoscg/agent-build)](https://github.com/magnoscg/agent-build/releases/latest)
 [![npm](https://img.shields.io/npm/v/@magnoscg/agent-build)](https://www.npmjs.com/package/@magnoscg/agent-build)
 [![CI](https://github.com/magnoscg/agent-build/actions/workflows/ci.yml/badge.svg)](https://github.com/magnoscg/agent-build/actions/workflows/ci.yml)
 [![Stars](https://img.shields.io/github/stars/magnoscg/agent-build)](https://github.com/magnoscg/agent-build/stargazers)
 [![License: MIT](https://img.shields.io/github/license/magnoscg/agent-build)](LICENSE)
-[![Demo](https://img.shields.io/badge/demo-GitHub%20Pages-7C6BFF)](https://magnoscg.github.io/agent-build/)
 
-**The simulation in**
+<sub>The simulation also speaks
 [English](https://magnoscg.github.io/agent-build/?lang=en) ·
 [español](https://magnoscg.github.io/agent-build/?lang=es) ·
 [français](https://magnoscg.github.io/agent-build/?lang=fr) ·
@@ -21,7 +22,7 @@
 [italiano](https://magnoscg.github.io/agent-build/?lang=it) ·
 [Nederlands](https://magnoscg.github.io/agent-build/?lang=nl) ·
 [português](https://magnoscg.github.io/agent-build/?lang=pt) ·
-[svenska](https://magnoscg.github.io/agent-build/?lang=sv)
+[svenska](https://magnoscg.github.io/agent-build/?lang=sv)</sub>
 
 One button hides the page, and a swarm of agent cursors puts it back together
 with selection boxes, sizes, guides, rulers and a HUD that tells your visitors

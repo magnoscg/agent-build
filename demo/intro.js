@@ -14,6 +14,7 @@
 
   const SVG_NS = 'http://www.w3.org/2000/svg';
   const WIDE = 720;
+  const LOW = 560;
   const ROLES = ['planner', 'ui', 'copy', 'layout', 'qa', 'a11y', 'perf', 'i18n'];
   const HUES = 6;
 
@@ -74,12 +75,14 @@
     const label = trigger.querySelector('.agent-build-label');
     const home = { parent: trigger.parentElement, next: trigger.nextSibling };
     const libraryLabel = label?.textContent;
+    const libraryLanguage = label?.lang;
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
     const timers = new Set();
     const agents = [];
     const quiet = new AbortController();
     let deck = [...OPENING, ...shuffled(COMPLAINTS)];
     let cells = [];
+    let tightness = 0;
     let live = true;
     let panickedAt = 0;
 
@@ -100,56 +103,91 @@
       }
     };
 
-    /* The area the cursors and their bubbles stay out of: the button, the
-       words under it, and room for a bubble on either side. */
+    /* The areas the cursors and their bubbles stay out of: the button, the
+       words under it, and room for a bubble on either side. A tight window
+       gives up the room first, and then the gap between button and words. */
     function keepOut() {
-      const narrow = innerWidth < WIDE;
       const button = trigger.getBoundingClientRect();
       const words = intro.querySelector('.intro-words').getBoundingClientRect();
-      return {
-        left: Math.min(button.left, words.left) - (narrow ? 20 : 180),
-        right: Math.max(button.right, words.right) + (narrow ? 20 : 180),
+      if (tightness === 2) {
+        return [button, words].map(({ left, right, top, bottom }) => ({
+          left: left - 12, right: right + 12, top: top - 12, bottom: bottom + 12,
+        }));
+      }
+      const room = innerWidth < WIDE || tightness === 1 ? 20 : 180;
+      return [{
+        left: Math.min(button.left, words.left) - room,
+        right: Math.max(button.right, words.right) + room,
         top: button.top - 56,
         bottom: words.bottom + 12,
-      };
+      }];
     }
+
+    const isFree = (x, y, out) => out.every((area) => x < area.left || x > area.right || y < area.top || y > area.bottom);
 
     function pointIn(cell, out) {
       for (let attempt = 0; attempt < 12; attempt += 1) {
         const x = random(cell.left, cell.right);
         const y = random(cell.top, cell.bottom);
-        if (x < out.left || x > out.right || y < out.top || y > out.bottom) {
+        if (isFree(x, y, out)) {
           return { x, y };
         }
       }
       return null;
     }
 
-    /* Each cursor keeps to a cell of a grid, so bubbles rarely collide. */
-    function measureCells() {
-      const narrow = innerWidth < WIDE;
-      const columns = narrow ? 2 : 3;
-      const rows = narrow ? 4 : 3;
-      const margin = narrow ? 16 : 40;
-      const top = 96;
-      const width = (innerWidth - margin * 2) / columns;
-      const height = (innerHeight - top - 56) / rows;
-      const out = keepOut();
-      const grid = [];
-      for (let row = 0; row < rows; row += 1) {
-        for (let column = 0; column < columns; column += 1) {
-          const cell = {
-            left: margin + column * width,
-            right: margin + (column + 1) * width,
-            top: top + row * height,
-            bottom: top + (row + 1) * height,
-          };
-          if (pointIn(cell, out)) {
-            grid.push(cell);
+    /* A free spot in the cell, if at least a quarter of it is free: a sliver
+       would crowd every cursor against the words. */
+    function spotIn(cell, out) {
+      const spots = [];
+      for (let column = 0; column < 6; column += 1) {
+        for (let row = 0; row < 6; row += 1) {
+          const x = cell.left + (column + 0.5) * (cell.right - cell.left) / 6;
+          const y = cell.top + (row + 0.5) * (cell.bottom - cell.top) / 6;
+          if (isFree(x, y, out)) {
+            spots.push({ x, y });
           }
         }
       }
-      return grid;
+      return spots.length >= 9 ? spots[Math.floor(spots.length / 2)] : null;
+    }
+
+    /* Each cursor keeps to a cell of a grid, so bubbles rarely collide. A
+       window too small for any cell just has no cursors until it grows. */
+    function measureCells() {
+      const narrow = innerWidth < WIDE;
+      const low = innerHeight < LOW;
+      const columns = narrow ? 2 : 3;
+      const rows = low ? 2 : narrow ? 4 : 3;
+      const margin = narrow ? 16 : 40;
+      const top = low ? 56 : 96;
+      const width = (innerWidth - margin * 2) / columns;
+      const height = (innerHeight - top - (low ? 40 : 56)) / rows;
+      if (width <= 0 || height <= 0) {
+        return [];
+      }
+      for (tightness = low ? 1 : 0; tightness <= 2; tightness += 1) {
+        const out = keepOut();
+        const grid = [];
+        for (let row = 0; row < rows; row += 1) {
+          for (let column = 0; column < columns; column += 1) {
+            const cell = {
+              left: margin + column * width,
+              right: margin + (column + 1) * width,
+              top: top + row * height,
+              bottom: top + (row + 1) * height,
+            };
+            const spot = spotIn(cell, out);
+            if (spot) {
+              grid.push({ ...cell, spot });
+            }
+          }
+        }
+        if (grid.length > 0) {
+          return grid;
+        }
+      }
+      return [];
     }
 
     function makeAgent(index, cell) {
@@ -167,15 +205,30 @@
       tag.className = 'agent-build-tag';
       tag.textContent = `${ROLES[index % ROLES.length]}-${String(index + 1).padStart(2, '0')}`;
       element.append(pointer, tag);
-      const agent = { element, cell, bubble: null, walk: null, ...pointIn(cell, keepOut()) };
+      const agent = { element, cell, bubble: null, walk: null, ...(pointIn(cell, keepOut()) ?? cell.spot) };
       element.style.transform = translate(agent);
       crowd.append(element);
       element.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400, delay: index * 60, fill: 'backwards' });
       return agent;
     }
 
+    /* A tight window gets one cursor per cell. */
+    function populate() {
+      const wanted = tightness > 0 ? cells.length : innerWidth < WIDE ? 6 : 10;
+      for (let index = agents.length; index < wanted; index += 1) {
+        const agent = makeAgent(index, cells[index % cells.length]);
+        agents.push(agent);
+        later(random(0, 1600), () => wander(agent));
+      }
+    }
+
     function wander(agent) {
       if (!live) {
+        return;
+      }
+      /* They stop to talk, so a bubble stays where it was placed. */
+      if (agent.bubble) {
+        later(random(600, 1400), () => wander(agent));
         return;
       }
       const to = pointIn(agent.cell, keepOut()) ?? agent;
@@ -188,6 +241,7 @@
         agent.y = to.y;
         agent.element.style.transform = translate(agent);
         agent.walk.cancel();
+        agent.walk = null;
         later(random(900, 3600), () => wander(agent));
       }, () => {});
     }
@@ -197,6 +251,14 @@
       agent.bubble = null;
     }
 
+    /* A bubble must not cover the button or the words, or leave the window. */
+    function blocked(bubble) {
+      const box = bubble.getBoundingClientRect();
+      const page = [trigger, intro.querySelector('.intro-words')].map((element) => element.getBoundingClientRect());
+      return box.left < 0 || box.right > innerWidth || box.top < 0 || page.some((area) => box.left < area.right
+        && box.right > area.left && box.top < area.bottom && box.bottom > area.top);
+    }
+
     function speak(agent, text, duration) {
       hush(agent);
       const bubble = document.createElement('span');
@@ -204,6 +266,13 @@
       bubble.className = flipped ? 'intro-bubble intro-bubble--flipped' : 'intro-bubble';
       bubble.textContent = text;
       agent.element.append(bubble);
+      if (blocked(bubble)) {
+        bubble.classList.toggle('intro-bubble--flipped');
+        if (blocked(bubble)) {
+          bubble.remove();
+          return;
+        }
+      }
       agent.bubble = bubble;
       bubble.animate(
         [{ opacity: 0, transform: 'scale(0.7) translateY(6px)' }, { opacity: 1, transform: 'none' }],
@@ -230,7 +299,7 @@
       }
       const speaking = agents.filter((agent) => agent.bubble);
       const limit = innerWidth < WIDE ? 2 : 4;
-      const free = agents.filter((agent) => !agent.bubble
+      const free = agents.filter((agent) => !agent.bubble && !agent.walk
         && !speaking.some((other) => other.cell === agent.cell));
       if (speaking.length < limit && free.length > 0) {
         speak(anyOf(free), nextComplaint(), random(2600, 3800));
@@ -245,7 +314,7 @@
         return;
       }
       panickedAt = now;
-      for (const agent of shuffled(agents).slice(0, innerWidth < WIDE ? 2 : 4)) {
+      for (const agent of shuffled(agents.filter((candidate) => !candidate.walk)).slice(0, innerWidth < WIDE ? 2 : 4)) {
         speak(agent, anyOf(PANIC), 1800);
       }
     }
@@ -259,6 +328,7 @@
       timers.clear();
       if (label) {
         label.textContent = libraryLabel;
+        label.lang = libraryLanguage;
       }
       home.parent.insertBefore(trigger, home.next);
       setPageInert(false);
@@ -320,21 +390,14 @@
 
     if (label) {
       label.textContent = 'Put them to work';
+      label.lang = 'en';
     }
     stage.append(trigger);
     setPageInert(true);
 
     cells = measureCells();
-    if (cells.length === 0) {
-      dismiss();
-      return;
-    }
-    const count = innerWidth < WIDE ? 6 : 10;
-    for (let index = 0; index < count; index += 1) {
-      agents.push(makeAgent(index, cells[index % cells.length]));
-    }
-    for (const agent of agents) {
-      later(random(0, 1600), () => wander(agent));
+    if (cells.length > 0) {
+      populate();
     }
     later(500, talk);
 
@@ -354,6 +417,7 @@
       if (cells.length === 0) {
         return;
       }
+      populate();
       agents.forEach((agent, index) => {
         agent.cell = cells[index % cells.length];
       });

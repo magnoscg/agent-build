@@ -395,7 +395,7 @@ test('the accent reaches what the README says it reaches', async (t) => {
 });
 
 test('the simulation speaks the language of its button', async (t) => {
-  const { page, problems } = await open(t, '/?lang=es');
+  const { page, problems } = await open(t, '/?lang=es&intro=off');
   const button = page.locator('button[data-agent-build]');
   assert.equal(await button.textContent(), 'Mira cómo la montan los agentes');
 
@@ -819,8 +819,123 @@ test('the intro covers the page, says it is a simulation, and its button runs th
   await assertClean(page, problems);
 });
 
-test('the intro never hides the page from a section link, a language link or reduced motion', async (t) => {
-  for (const [path, options] of [['/#install', {}], ['/?lang=es', {}], ['/?intro=off', {}], ['/', { reducedMotion: 'reduce' }]]) {
+test('a language link shows the intro too, and the run then speaks that language', async (t) => {
+  const { page, problems } = await open(t, '/?lang=es');
+  const button = page.locator('#demo-intro button[data-agent-build]');
+  await button.waitFor();
+  assert.equal(await button.locator('.agent-build-label').evaluate((label) => `${label.lang}:${label.textContent}`),
+    'en:Put them to work');
+
+  await button.click();
+  await page.locator('.agent-build-hud').waitFor();
+  assert.match(await hudText(page), /^Simulación/);
+  const label = page.locator('button[data-agent-build] .agent-build-label');
+  assert.equal(await label.evaluate((element) => `${element.lang}:${element.textContent}`),
+    'es:Mira cómo la montan los agentes');
+  await page.evaluate(() => window.AgentBuild.stop());
+  await waitUntilGone(page);
+  await assertClean(page, problems);
+});
+
+test('the clean demo URL is in English whatever the browser\'s language', async (t) => {
+  const { page, problems } = await open(t, '/', { locale: 'es-ES' });
+  assert.equal(await page.evaluate(() => navigator.language), 'es-ES');
+  const button = page.locator('#demo-intro button[data-agent-build]');
+  await button.waitFor();
+  await button.click();
+  await page.locator('.agent-build-hud').waitFor();
+  assert.match(await hudText(page), /^Simulation ·/);
+  assert.equal(await page.locator('button[data-agent-build]').textContent(), 'Watch the agents build it');
+  await page.evaluate(() => window.AgentBuild.stop());
+  await waitUntilGone(page);
+  await assertClean(page, problems);
+});
+
+for (const [width, height] of [[812, 375], [667, 375], [568, 320], [1024, 500], [1280, 450], [720, 400],
+  [375, 812], [320, 568], [320, 480], [280, 653]]) {
+  test(`the intro fits a ${width} × ${height} window, and its button works`, async (t) => {
+    const { page, problems } = await open(t, '/', { viewport: { width, height } });
+    const button = page.locator('#demo-intro button[data-agent-build]');
+    await button.waitFor();
+    const layout = await page.evaluate(() => {
+      const inside = (selector) => {
+        const { left, right, top, bottom } = document.querySelector(selector).getBoundingClientRect();
+        return left >= 0 && right <= innerWidth && top >= 0 && bottom <= innerHeight;
+      };
+      const disc = document.querySelector('#demo-intro button').getBoundingClientRect();
+      const cursors = [...document.querySelectorAll('.intro-agent')].map((agent) => {
+        const { m41: x, m42: y } = new DOMMatrixReadOnly(agent.style.transform);
+        return { x, y };
+      });
+      return {
+        fits: ['#demo-intro button', '.intro-line', '.intro-note', '.intro-skip'].filter((selector) => !inside(selector)),
+        cursors: cursors.length,
+        lost: cursors.filter(({ x, y }) => !(x >= 0 && x <= innerWidth && y >= 0 && y <= innerHeight)).length,
+        onButton: cursors.filter(({ x, y }) => x > disc.left && x < disc.right && y > disc.top && y < disc.bottom).length,
+      };
+    });
+    assert.deepEqual(layout.fits, [], 'all of it is on screen');
+    assert.ok(layout.cursors > 0, 'there are cursors');
+    assert.equal(layout.lost, 0, 'no cursor is off screen');
+    assert.equal(layout.onButton, 0, 'no cursor sits on the button');
+    await page.screenshot({ path: fileURLToPath(new URL(`intro-${width}x${height}.png`, OUTPUT)) });
+
+    await button.click();
+    await page.locator('.agent-build-hud').waitFor();
+    assert.equal(await page.locator('#demo-intro').count(), 0);
+    await page.evaluate(() => window.AgentBuild.stop());
+    await waitUntilGone(page);
+    await assertClean(page, problems);
+  });
+}
+
+for (const [width, height] of [[812, 375], [568, 320]]) {
+  test(`at ${width} × ${height} the crowd spreads out and its bubbles leave the words alone`, async (t) => {
+    const { page, problems } = await open(t, '/', { viewport: { width, height } });
+    await page.locator('#demo-intro button[data-agent-build]').waitFor();
+    const seen = await page.evaluate(() => new Promise((resolve) => {
+      const words = document.querySelector('.intro-words').getBoundingClientRect();
+      const disc = document.querySelector('#demo-intro button').getBoundingClientRect();
+      const result = { bubbles: 0, clashes: 0 };
+      const started = performance.now();
+      const look = () => {
+        for (const bubble of document.querySelectorAll('.intro-bubble')) {
+          const box = bubble.getBoundingClientRect();
+          result.bubbles += 1;
+          const covers = (area) => box.left < area.right && box.right > area.left && box.top < area.bottom && box.bottom > area.top;
+          if (bubble.getAnimations().length === 0 && (covers(words) || covers(disc))) {
+            result.clashes += 1;
+          }
+        }
+        if (performance.now() - started > 5000) {
+          result.left = [...document.querySelectorAll('.intro-agent')].some((agent) => new DOMMatrixReadOnly(agent.style.transform).m41 < disc.left);
+          result.right = [...document.querySelectorAll('.intro-agent')].some((agent) => new DOMMatrixReadOnly(agent.style.transform).m41 > disc.right);
+          resolve(result);
+        } else {
+          requestAnimationFrame(look);
+        }
+      };
+      look();
+    }));
+    assert.ok(seen.bubbles > 0, 'they talk');
+    assert.equal(seen.left && seen.right, true, 'there are cursors on both sides of the button');
+    assert.equal(seen.clashes, 0, 'no bubble covers the button or the words');
+    await assertClean(page, problems);
+  });
+}
+
+test('a window too small for the crowd keeps the intro, and the crowd arrives when it grows', async (t) => {
+  const { page, problems } = await open(t, '/', { viewport: { width: 120, height: 80 } });
+  await page.locator('#demo-intro').waitFor({ state: 'attached' });
+  assert.equal(await page.evaluate(() => document.documentElement.hasAttribute('data-demo-intro-live')), true);
+
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.waitForFunction(() => document.querySelectorAll('.intro-agent').length === 10);
+  await assertClean(page, problems);
+});
+
+test('the intro never hides the page from a section link, a skip or reduced motion', async (t) => {
+  for (const [path, options] of [['/#install', {}], ['/?intro=off', {}], ['/?lang=es#install', {}], ['/', { reducedMotion: 'reduce' }]]) {
     const { page, problems } = await open(t, path, options);
     assert.equal(await page.locator('#demo-intro').isVisible(), false, path);
     assert.equal(await page.evaluate(() => document.documentElement.hasAttribute('data-demo-intro')), false, path);
