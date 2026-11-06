@@ -7,6 +7,14 @@ notes of that version.
 
 ## Unreleased
 
+## 1.0.4 - 2026-11-06
+
+### Changed
+
+- The demo page opens with an intro: the agents loiter and complain around one
+  big round button that puts them to work. Links to a section or a language
+  skip it, and reduced motion never sees it.
+
 ## 1.0.3 - 2026-11-06
 
 ### Changed

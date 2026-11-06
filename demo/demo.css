@@ -239,6 +239,123 @@ td:first-child code, td:nth-child(2) code { white-space: nowrap; }
 .site-footer p { margin: 0; }
 .site-footer p + p { margin-top: 8px; }
 
+/* The intro. It is opaque and sits over the real page, which stays laid out
+   behind it so the library can measure it. intro-gate.js switches it on
+   before the first paint; reduced motion never sees it, even if the
+   preference changes halfway through. */
+html[data-demo-intro] { overflow: hidden; }
+html[data-demo-intro] .intro[hidden] { display: block; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-demo-intro] { overflow: auto; }
+  html[data-demo-intro] .intro[hidden],
+  .intro { display: none !important; }
+}
+.intro {
+  --disc: clamp(176px, 30vmin, 256px);
+  /* The library's hub appears at this height, so the button turns into it. */
+  --centre: min(45vh, 380px);
+  position: fixed;
+  inset: 0;
+  z-index: 2147482000;
+  overflow: hidden;
+  background-color: var(--bg);
+  background-image: radial-gradient(var(--line) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--text);
+  font: 400 1rem/1.5 var(--font);
+}
+.intro-brand { position: absolute; top: 16px; left: 24px; }
+.intro-stage {
+  position: absolute;
+  top: var(--centre);
+  left: 50%;
+  width: var(--disc);
+  height: var(--disc);
+  transform: translate(-50%, -50%);
+}
+.intro [data-agent-build],
+.intro-ghost {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: var(--disc);
+  height: var(--disc);
+  padding: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 30%, #7F6FFF, #5546E8 60%, #4435C9);
+  box-shadow: 0 10px 0 #2F2499, 0 24px 48px rgba(85, 70, 232, 0.45), inset 0 2px 0 rgba(255, 255, 255, 0.35);
+  color: #FFFFFF;
+  font: 700 clamp(1.125rem, 2.8vmin, 1.5rem)/1.15 var(--font);
+  letter-spacing: -0.01em;
+  text-align: center;
+  text-transform: none;
+  text-wrap: balance;
+}
+.intro [data-agent-build] {
+  cursor: pointer;
+  transition: transform 90ms ease, box-shadow 90ms ease;
+}
+.intro [data-agent-build]:hover { transform: translateY(-2px); }
+.intro [data-agent-build]:active {
+  transform: translateY(8px);
+  box-shadow: 0 2px 0 #2F2499, 0 8px 20px rgba(85, 70, 232, 0.45), inset 0 2px 0 rgba(255, 255, 255, 0.35);
+}
+.intro [data-agent-build]:focus-visible { outline: 3px solid var(--text); outline-offset: 16px; }
+.intro [data-agent-build]::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 2px solid #5546E8;
+  pointer-events: none;
+  animation: intro-pulse 2.4s ease-out infinite;
+}
+@keyframes intro-pulse {
+  from { opacity: 0.6; transform: scale(1); }
+  to { opacity: 0; transform: scale(1.32); }
+}
+.intro-words {
+  position: absolute;
+  top: calc(var(--centre) + var(--disc) / 2 + 36px);
+  left: 50%;
+  width: min(100% - 32px, 46ch);
+  transform: translateX(-50%);
+  text-align: center;
+}
+.intro-line { margin: 0; font-weight: 600; font-size: 1.0625rem; text-wrap: balance; }
+.intro-note { margin: 4px 0 0; color: var(--muted); font-size: 0.875rem; }
+.intro-skip { display: inline-block; margin-top: 10px; padding: 4px 8px; font-size: 0.875rem; }
+.intro-crowd { position: absolute; inset: 0; pointer-events: none; }
+.intro-agent { position: absolute; top: 0; left: 0; will-change: transform; }
+.intro-bubble {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 8px;
+  width: max-content;
+  max-width: 190px;
+  padding: 6px 11px;
+  border-radius: 12px 12px 12px 3px;
+  background: var(--agent);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+  color: #08080B;
+  font: 600 0.8125rem/1.25 var(--font);
+  transform-origin: 0 100%;
+}
+.intro-bubble--flipped {
+  right: 8px;
+  left: auto;
+  border-radius: 12px 12px 3px 12px;
+  text-align: right;
+  transform-origin: 100% 100%;
+}
+@media (max-width: 719px) {
+  .intro-bubble { max-width: 148px; }
+}
+
 @media (max-width: 800px) {
   .split { grid-template-columns: 1fr; gap: 32px; }
   .hero { padding: 64px 0 56px; }

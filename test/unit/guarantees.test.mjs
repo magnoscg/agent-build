@@ -95,6 +95,12 @@ test('the demo ships its trigger hidden and loads the script deferred', () => {
   assert.match(demo, /<script src="dist\/agent-build\.js" defer><\/script>/);
 });
 
+test('the demo ships its intro hidden and it says it is a simulation', () => {
+  assert.match(demo, /<div class="intro agent-build-layer" id="demo-intro" hidden>/);
+  assert.match(demo, /<p class="intro-note">Simulation\./);
+  assert.match(demo, /<script src="demo\/intro-gate\.js"><\/script>/);
+});
+
 test('the source and the package agree on the version', () => {
   assert.equal(VERSION, pkg.version);
 });
