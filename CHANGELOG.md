@@ -7,6 +7,8 @@ notes of that version.
 
 ## Unreleased
 
+## 1.0.4 - 2026-11-06
+
 ### Changed
 
 - The demo page opens with an intro: the agents loiter and complain around one
