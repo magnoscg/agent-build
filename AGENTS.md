@@ -40,6 +40,7 @@ but `smoke`, which needs Google Chrome.
 | `src/options.ts` | Every option: default, limits, validation |
 | `src/locales/` | One data file per language, and the registry that resolves and checks them |
 | `src/layers.ts` | Which elements become layers. Pure functions, tested with a fake DOM |
+| `src/geometry.ts` | Where a block is, turned with the element. Pure functions plus one DOM reader |
 | `src/page.ts` | Feature checks and the attributes that hold a run's state |
 | `src/run/` | One run, from `run.ts`: building, revealing, overlays, HUD, scrolling |
 | `src/agent-build.css` | Hiding, revealing, overlays and the default button, in `@layer agent-build` |
