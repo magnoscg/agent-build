@@ -327,6 +327,73 @@ test('boxes take the size and angle of turned elements, on a body a collapsing m
   await assertClean(page, problems);
 });
 
+test('the minified files work on their own', async (t) => {
+  const { page, problems } = await open(t, '/test/fixtures/minified.html');
+  await page.locator('button[data-agent-build]').click();
+  await page.locator('.agent-build-hud').waitFor();
+  assert.match(await hudText(page), /^Simulation/);
+
+  await page.evaluate(() => window.AgentBuild.stop());
+  await waitUntilGone(page);
+  await assertClean(page, problems);
+});
+
+test('the hub icon can be a relative path to an SVG with only a viewBox', async (t) => {
+  const { page, problems } = await open(t, '/test/fixtures/hub.html');
+  await page.locator('#hubbed').click();
+  await page.locator('.agent-build-hub img').waitFor();
+  const icon = await page.evaluate(async () => {
+    const image = document.querySelector('.agent-build-hub img');
+    await image.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = 32;
+    canvas.height = 32;
+    const context = canvas.getContext('2d');
+    context.drawImage(image, 0, 0, 32, 32);
+    const { data } = context.getImageData(0, 0, 32, 32);
+    const painted = data.filter((value, index) => index % 4 === 3 && value > 128).length;
+    return { attribute: image.getAttribute('src'), path: new URL(image.src).pathname, size: [image.width, image.height], painted };
+  });
+
+  assert.deepEqual([icon.attribute, icon.path, icon.size], ['hub.svg', '/test/fixtures/hub.svg', [32, 32]]);
+  assert.ok(icon.painted > 480 && icon.painted < 544, `half of the icon is painted, scaled up: ${icon.painted} px`);
+  await page.evaluate(() => window.AgentBuild.stop());
+  await waitUntilGone(page);
+  await assertClean(page, problems);
+});
+
+test('the accent reaches what the README says it reaches', async (t) => {
+  const accents = () => {
+    const accent = (selector) => getComputedStyle(document.querySelector(selector));
+    return {
+      run: accent('.agent-build-stage').getPropertyValue('--agent-build-a').trim(),
+      hud: accent('.agent-build-hud').getPropertyValue('--agent-build-a').trim(),
+      plain: accent('#plain').getPropertyValue('--agent-accent').trim(),
+      accented: accent('#accented').getPropertyValue('--agent-accent').trim(),
+    };
+  };
+  const cases = [
+    ['#plain', ':root', { run: '#FF0000', hud: '#FF0000', plain: '#FF0000', accented: '#0A84FF' }],
+    ['#plain', '#plain', { run: '#7C6BFF', hud: '#7C6BFF', plain: '#FF0000', accented: '#0A84FF' }],
+    ['#accented', null, { run: '#0A84FF', hud: '#0A84FF', plain: '', accented: '#0A84FF' }],
+    ['#accented', ':root', { run: '#0A84FF', hud: '#0A84FF', plain: '#FF0000', accented: '#0A84FF' }],
+  ];
+  for (const [trigger, styled, expected] of cases) {
+    const { page, problems } = await open(t, '/test/fixtures/hub.html');
+    await page.evaluate((selector) => {
+      if (selector) {
+        document.querySelector(selector).style.setProperty('--agent-accent', '#FF0000');
+      }
+    }, styled);
+    await page.locator(trigger).click();
+    await page.locator('.agent-build-hud').waitFor();
+    assert.deepEqual(await page.evaluate(accents), expected, `${trigger} with the variable on ${styled}`);
+    await page.evaluate(() => window.AgentBuild.stop());
+    await waitUntilGone(page);
+    await assertClean(page, problems);
+  }
+});
+
 test('the simulation speaks the language of its button', async (t) => {
   const { page, problems } = await open(t, '/?lang=es');
   const button = page.locator('button[data-agent-build]');

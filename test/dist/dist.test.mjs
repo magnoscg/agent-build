@@ -34,6 +34,14 @@ test('every path the package exports exists', async () => {
   }
 });
 
+test('every file the README tells people to self-host exists', async () => {
+  const readme = await read('README.md');
+  const install = readme.slice(readme.indexOf('## Install'), readme.indexOf('## Recipes'));
+  const files = new Set([...install.matchAll(/dist\/agent-build[\w.]*\.(?:js|css)/g)].map(([file]) => file));
+  assert.equal(files.size, 4);
+  await Promise.all([...files].map((file) => read(file)));
+});
+
 test('named imports work under Node ESM and refuse to run outside a browser', async () => {
   const library = await import('@magnoscg/agent-build');
   assert.equal(library.version, pkg.version);
